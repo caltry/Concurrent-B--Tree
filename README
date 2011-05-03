@@ -1,2 +1,6 @@
 This is a B*-Tree implementation based on the paper ${PAPER}.
 This is being implemented for a project in our Parallel Computing I class.
+
+This project uses the Parallel Java libaray. You'll need to download it and
+add it to your classpath before you compile or run this. You can find parallel
+java here: http://www.cs.rit.edu/~ark/pj.shtml
