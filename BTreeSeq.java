@@ -10,7 +10,7 @@
 import java.util.Map;
 import java.lang.reflect.Array;
 
-public class BTreeSeq<K,V>
+public class BTreeSeq<K,V> implements BTree<K,V>
 {
 	private int numKeysPerNode = 7;
 	private int size = 0;
@@ -19,7 +19,7 @@ public class BTreeSeq<K,V>
 	{
 		private int numKeys;
 		private K[] keys;
-		private Node[] children;
+		private Node<K,V>[] children;
 		private Node<K,V> parent = null;
 
 		@SuppressWarnings({"unchecked"})
@@ -63,30 +63,35 @@ public class BTreeSeq<K,V>
 		assert(false);
 		return false;
 	}
-
+	
+	/** {@inheritDoc} */
 	public V get( K key )
 	{
 		assert(false);
 		return null;
 	}
 
+	/** {@inheritDoc} */
 	public boolean isEmpty()
 	{
 		return size == 0;
 	}
 
+	/** {@inheritDoc} */
 	public V put( K key, V value )
 	{
 		assert(false);
 		return null;
 	}
 
+	/** {@inheritDoc} */
 	public V remove( K key )
 	{
 		assert(false);
 		return null;
 	}
 
+	/** {@inheritDoc} */
 	public int size()
 	{
 		return this.size;
