@@ -33,14 +33,14 @@ class Node<K,V>
 		// "unchecked" cast, and we don't want to be warned about it,
 		// because we've already guaranteed the type safety.
 		keys = (K[]) Array.newInstance( key.getClass(), numKeysPerNode );
-
-		children = new Node[numKeysPerNode-1];
-
+		children = new Node[numKeysPerNode+1];
+        numKeys = 0;
 		this.parent = parent;
 	}
 
 	/**
 	 * Find the lowest number in the range of Keys in this Node.
+     *
 	 */
 	public K lowerBound()
 	{
