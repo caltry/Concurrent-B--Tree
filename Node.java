@@ -41,6 +41,7 @@ class Node<K,V>
 	/**
 	 * Find the lowest number in the range of Keys in this Node.
      *
+     * @return The lowerbound of the values in this node.
 	 */
 	public K lowerBound()
 	{
@@ -49,6 +50,8 @@ class Node<K,V>
 
 	/**
 	 * Find the highest number in the range of Keys in this Node.
+     *
+     * @return The upperbound of the values in this node.
 	 */
 	public K upperUpper()
 	{
