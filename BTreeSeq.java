@@ -10,9 +10,8 @@
 import java.util.Map;
 import java.lang.reflect.Array;
 
-public class BTreeSeq<K,V> implements BTree<K,V>
+public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
 {
-	private int numKeysPerNode = 7;
 	private int size = 0;
 
 	private Node<K,V> root = null;
@@ -42,13 +41,17 @@ public class BTreeSeq<K,V> implements BTree<K,V>
 	public V get( K key )
 	{
 		Node<K,V> currentNode = root;
-		if( currentNode == null )
+
+		while( currentNode != null )
 		{
-			return null;
-		}
-		else
-		{
-			// FIXME
+			if( currentNode == null )
+			{
+				return null;
+			}
+			else
+			{
+				currentNode = currentNode.getChild(key);
+			}
 		}
 		return null;
 	}

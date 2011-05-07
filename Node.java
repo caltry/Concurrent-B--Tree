@@ -12,7 +12,7 @@ import java.lang.reflect.Array;
 /** 
  * A B-Tree node.
  */
-class Node<K,V>
+class Node<K extends Comparable,V>
 {
 	private final int numKeysPerNode = 7;
 
@@ -56,5 +56,20 @@ class Node<K,V>
 	public K upperUpper()
 	{
 		return keys[numKeys-1];
+	}
+	
+	/**
+	 * Returns a child node such that K is within its bounds.
+	 */
+	public Node<K,V> getChild( K key )
+	{
+		// Linear search, get the K'th child
+		int sentry = 0;
+//		while( keys[sentry] < key && sentry < keys.length)
+		while( keys[sentry].compareTo(key) < 0 && sentry < keys.length)
+		{
+			sentry++;
+		}
+		return children[sentry];
 	}
 }
