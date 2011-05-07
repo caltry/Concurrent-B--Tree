@@ -14,11 +14,11 @@ import java.lang.reflect.Array;
  */
 public abstract class Node<K extends Comparable,V>
 {
-	private final int numKeysPerNode = 7;
+	protected final int numKeysPerNode = 7;
 
-	private int numKeys;
-	private K[] keys;
-	private Node<K,V> parent = null;
+	protected int numKeys;
+	protected K[] keys;
+	protected Node<K,V> parent = null;
 
 	@SuppressWarnings({"unchecked"})
 	public Node( K key,
