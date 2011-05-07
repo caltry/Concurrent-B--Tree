@@ -6,28 +6,15 @@
  */
 
 
+/**
+ * A Union superclass that encompasses Left and Right Union types.
+ */
 public class Union<A,B> {
-    private A myA;
-    private B myB;
-    
     /**
-     * Constructs a union holding type A.
-     *
-     * @param a The data held by this union.
+     * Constructs a new Union with no data. This should not be called by any
+     * class except for subclasses.
      */
-    public Union( A a ) {
-        myA = a;
-        myB = null;
-    }
-
-    /**
-     * Constructs a union holding type B.
-     *
-     * @param b The data held by this union.
-     */
-    public Union( B b ) { 
-        myA = null;
-        myB = b;
+    private Union() { 
     }
 
     /**
@@ -35,8 +22,8 @@ public class Union<A,B> {
      *
      * @return The data of type A or null if there if it is storing data of type B.
      */
-    public final A left() {
-        return myA;
+    public A left() {
+        return null;
     }
 
     /**
@@ -44,7 +31,58 @@ public class Union<A,B> {
      *
      * @return The data of type A or null if there if it is storing data of type B.
      */
-    public final B right() {
-        return myB;
+    public B right() {
+        return null;
+    }
+
+    /**
+     * A Union holding data of type A.
+     */
+    public static class Left<A,B> extends Union<A,B> {
+        A myA;
+
+        /**
+         * Constructs a union that uses type A.
+         *
+         * @param a The data held by the union.
+         */
+        public Left( A a ) {
+            myA = a;
+        }
+
+        /**
+         * Overrides left() so that it returns the actual data held by the union.
+         *
+         * @return The data held by the union.
+         */
+        public A left() { 
+            return myA; 
+        }
+
+    }
+
+    /**
+     * A union holding data of type B.
+     */
+    public static class Right<A,B> extends Union<A,B> {
+        B myB;
+        
+        /**
+         * Constructs a union that uses type A.
+         *
+         * @param a The data held by the union.
+         */
+        public Right( B b ) {
+            myB = b;
+        }
+
+        /**
+         * Overrides right() so that it returns the actual data held by the union.
+         *
+         * @return The data held by the union.
+         */
+        public B right() {
+            return myB;
+        }
     }
 }

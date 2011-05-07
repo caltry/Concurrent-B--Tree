@@ -12,13 +12,12 @@ import java.lang.reflect.Array;
 /** 
  * A B-Tree node.
  */
-class Node<K extends Comparable,V>
+public abstract class Node<K extends Comparable,V>
 {
 	private final int numKeysPerNode = 7;
 
 	private int numKeys;
 	private K[] keys;
-	private Node<K,V>[] children;
 	private Node<K,V> parent = null;
 
 	@SuppressWarnings({"unchecked"})
@@ -33,7 +32,6 @@ class Node<K extends Comparable,V>
 		// "unchecked" cast, and we don't want to be warned about it,
 		// because we've already guaranteed the type safety.
 		keys = (K[]) Array.newInstance( key.getClass(), numKeysPerNode );
-		children = new Node[numKeysPerNode+1];
         numKeys = 0;
 		this.parent = parent;
 	}
@@ -61,15 +59,5 @@ class Node<K extends Comparable,V>
 	/**
 	 * Returns a child node such that K is within its bounds.
 	 */
-	public Node<K,V> getChild( K key )
-	{
-		// Linear search, get the K'th child
-		int sentry = 0;
-//		while( keys[sentry] < key && sentry < keys.length)
-		while( keys[sentry].compareTo(key) < 0 && sentry < keys.length)
-		{
-			sentry++;
-		}
-		return children[sentry];
-	}
+	public abstract Union<Node<K,V>,V> getChild( K key );
 }
