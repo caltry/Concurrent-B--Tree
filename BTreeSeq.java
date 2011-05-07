@@ -39,6 +39,22 @@ public class BTreeSeq<K,V> implements BTree<K,V>
 
 			this.parent = parent;
 		}
+
+		/**
+		 * Find the lowest number in the range of Keys in this Node.
+		 */
+		public K lowerBound()
+		{
+			return keys[0];
+		}
+
+		/**
+		 * Find the highest number in the range of Keys in this Node.
+		 */
+		public int upperUpper()
+		{
+			return keys[numKeys-1];
+		}
 	}
 
 	private Node<K,V> root = null;
@@ -56,7 +72,7 @@ public class BTreeSeq<K,V> implements BTree<K,V>
 		assert(false);
 		return false;
 	}
-	
+
 	/** {@inheritDoc} */
 	public boolean containsValue( V value )
 	{
@@ -67,7 +83,15 @@ public class BTreeSeq<K,V> implements BTree<K,V>
 	/** {@inheritDoc} */
 	public V get( K key )
 	{
-		assert(false);
+		Node<K,V> currentNode = root;
+		if( currentNode == null )
+		{
+			return null;
+		}
+		else
+		{
+			// FIXME
+		}
 		return null;
 	}
 
