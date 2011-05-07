@@ -10,7 +10,7 @@
 import java.util.Map;
 import java.lang.reflect.Array;
 
-public class BTree<K,V>
+public class BTreeSeq<K,V>
 {
 	private int numKeysPerNode = 7;
 	private int size = 0;
