@@ -4,6 +4,8 @@
  * Author: Benjamin David Mayes <bdm8233@rit.edu>
  */
 
+import java.util.Arrays;
+
 /**
  * A node that is internal to the BTree
  */
@@ -37,5 +39,22 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
 			sentry++;
 		}
 		return new Union.Left<Node<K,V>,V>(children[sentry]);
+    }
+
+    /** {@inheritDoc} */
+    public Union.Left<Node<K,V>,V> split()
+    {
+        InternalNode<K,V> newNode;
+        newNode = new InternalNode<K,V>( keys[(1+keys.length)/2],
+                                         this.parent );
+        newNode.next = this.next;
+        this.next = newNode;
+        
+        // Copy the larger keys to the new nodes
+        newNode.keys = Arrays.copyOfRange( this.keys,
+                                           (1+keys.length)/2,
+                                           keys.length);
+
+        return new Union.Left<Node<K,V>,V>(newNode);
     }
 }

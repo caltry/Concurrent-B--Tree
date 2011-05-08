@@ -82,4 +82,11 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         }
         return true;
     }
+    
+    /** {@inheritDoc} */
+    public Union.Left<Node<K,V>,V> split()
+    {
+        // TODO Writeme
+        return null;
+    }
 }

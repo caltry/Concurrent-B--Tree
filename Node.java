@@ -14,7 +14,7 @@ import java.lang.reflect.Array;
  */
 public abstract class Node<K extends Comparable,V>
 {
-	protected final int numKeysPerNode = 7;
+	protected static final int numKeysPerNode = 7;
 
 	protected int numKeys;
 	protected K[] keys;
@@ -61,4 +61,9 @@ public abstract class Node<K extends Comparable,V>
 	 * Returns a child node such that K is within its bounds.
 	 */
 	public abstract Union<Node<K,V>,V> getChild( K key );
+
+    /**
+     * Splits a node into two nodes, returning the second node.
+     */
+    public abstract Union<Node<K,V>,V> split();
 }
