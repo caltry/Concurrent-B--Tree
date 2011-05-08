@@ -5,6 +5,7 @@
  */
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
 /**
  * A node that is a leaf of the BTree
@@ -86,7 +87,22 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
     /** {@inheritDoc} */
     public Union.Left<Node<K,V>,V> split()
     {
-        // TODO Writeme
-        return null;
+        LeafNode<K,V> newNode;
+        newNode = new LeafNode<K,V>( keys[(1+keys.length)/2],
+                                     children[(1+children.length)/2],
+                                     this.parent );
+        newNode.next = this.next;
+        this.next = newNode;
+
+        // Copy the larger keys to the new node
+        newNode.keys = Arrays.copyOfRange( this.keys,
+                                           (1+keys.length)/2,
+                                           keys.length );
+
+        // Copy the values corresponding to the larger keys to the new node.
+        newNode.children = Arrays.copyOfRange( this.children,
+                                               (1+children.length)/2,
+                                               keys.length );
+        return new Union.Left<Node<K,V>,V>(newNode);
     }
 }
