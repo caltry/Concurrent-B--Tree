@@ -1,7 +1,12 @@
+/*
+ * File: InternalNode.java
+ * Description: An internal node in the BTree
+ * Author: Benjamin David Mayes <bdm8233@rit.edu>
+ */
 class InternalNode<K extends Comparable, V> extends Node<K,V> {
     private Node<K,V>[] children;
-    public InternalNode( K key, V value, Node<K,V> parent) {
-        super(key, value, parent);
+    public InternalNode( K key, Node<K,V> parent) {
+        super(key, parent);
         children = new Node[numKeysPerNode+1];
     }
 

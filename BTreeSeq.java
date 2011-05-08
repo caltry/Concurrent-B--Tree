@@ -42,7 +42,7 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
 	{
 		Node<K,V> currentNode = root;
 
-		while( currentNode != null )
+		while( currentNode instanceof InternalNode )
 		{
 			if( currentNode == null )
 			{
@@ -50,10 +50,14 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
 			}
 			else
 			{
-				currentNode = currentNode.getChild(key);
+				currentNode = currentNode.getChild(key).left();
 			}
 		}
-		return null;
+		if( currentNode instanceof LeafNode ) {
+            return currentNode.getChild(key).right();
+        } else {
+            return null;
+        }
 	}
 
 	/** {@inheritDoc} */
