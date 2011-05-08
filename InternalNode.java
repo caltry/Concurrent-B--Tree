@@ -31,6 +31,41 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
     }
 
     /**
+     * Inserts a new childNode into this node.
+     * <b>Assumes that there is room to store the extra key.</b>
+     *
+     * @param key The key corresponding to the <b>childNode</b>.
+     * @param childNode The node that the <b>key</b> should map to.
+     */
+    public void addChild( K key, Node<K,V> childNode )
+    {
+        if( numKeys < keys.length )
+        {
+            int sentry = 0;
+            while( sentry < keys.length && keys[sentry].compareTo(key) < 0 )
+            {
+                sentry++;
+            }
+
+            numKeys++;
+
+            // Now we're at the index where the key should be inserted.
+            // We need to push everything else out of the way before inserting
+            // here.
+
+            int end = numKeys;
+            while( end != sentry )
+            {
+                keys[end] = keys[end-1];
+                end--;
+            }
+
+            children[sentry] = childNode;
+        }
+    }
+
+
+    /**
      * Get a child node of this node.
      *
      * @param key The key to get the child of.
