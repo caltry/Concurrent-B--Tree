@@ -19,6 +19,7 @@ public abstract class Node<K extends Comparable,V>
 	protected int numKeys;
 	protected K[] keys;
 	protected Node<K,V> parent = null;
+    protected Node<K,V> next = null;
 
 	@SuppressWarnings({"unchecked"})
 	public Node( K key,
