@@ -104,9 +104,10 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
                 this.parent,
                 this.next );
         this.next = newNode;
-        //TODO: Do we want resizing here?
-        // if so uncomment the next line
-        // this.numkeys = (1+keys.length)/2
+
+        // Resize our key array
+        this.numKeys = (1+keys.length)/2;
+
         return new Union.Left<Node<K,V>,V>(newNode);
     }
 }
