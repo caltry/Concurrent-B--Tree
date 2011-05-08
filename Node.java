@@ -59,6 +59,10 @@ public abstract class Node<K extends Comparable,V>
 	
 	/**
 	 * Returns a child node such that K is within its bounds.
+     *
+     * @param key The key of the desired child.
+     * @return The child to search for the key or the value corresponding to 
+     * the key depending on the type of node.
 	 */
 	public abstract Union<Node<K,V>,V> getChild( K key );
 }
