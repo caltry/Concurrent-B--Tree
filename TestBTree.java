@@ -4,8 +4,8 @@ public class TestBTree
 	{
 		BTree seqBTree = new BTreeSeq();
 
-		LeafNode<Integer, Integer> root = new LeafNode<Integer, Integer>( new Integer(1), null);
-		root.addValue( new Integer(1), new Integer(11) );
+		LeafNode<Integer, Integer> root = new LeafNode<Integer, Integer>( new Integer(1),
+																		new Integer(11), null);
 		root.addValue( new Integer(2), new Integer(11) );
 		root.addValue( new Integer(3), new Integer(11) );
 		root.addValue( new Integer(4), new Integer(11) );
