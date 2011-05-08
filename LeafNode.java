@@ -48,22 +48,38 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         }
     }
 	
-	/**
-	 * Adds a key:value pair to the current LeafNode.
-	 */
-	public boolean addValue( K key, V value )
-	{
-		if( numKeys == numKeysPerNode )
-		{	
-			// This node is full. Move on to the next one.
-			return false;
-		}
-		else
-		{
-			keys[numKeys] = key;
-			children[numKeys] = value;
-			numKeys++;
-			return true;
-		}
-	}
+    /**
+     * Adds a key:value pair to the current LeafNode.
+     * @param key The key of the value to add
+     * @param value The value of the key to add.
+     * @return True if success, false otherwise.
+     */
+    public boolean addValue( K key, V value )
+    {
+        // we need to insert the key:value pair in order
+        int i = 0;
+        while( key.compareTo( keys[i] ) < 0 && i < numKeys ) {
+            ++i;
+        }
+        if( keys[i].compareTo( key ) == 0 ) {
+            // we can replace the old value for this key
+            children[i] = value;
+        } else if( numKeys != numKeysPerNode) {
+            // we can add a new value if and only if there is room
+
+            // move everything over
+            for( int j = numKeys; j > i; --j ) {
+                keys[j] = keys[j-1];
+                children[j] = children[j-1];
+            }
+            
+            // insert the key:value pair in the correct spot
+            keys[i] = key;
+            children[i] = value;
+            numKeys++;
+        } else {
+            return false;
+        }
+        return true;
+    }
 }
