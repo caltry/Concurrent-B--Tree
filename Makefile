@@ -1,8 +1,11 @@
-build-all:
+build-classfiles: *.java
 	javac *.java
 
-javadoc:
+all: build-classfiles javadocs
+
+javadocs: *.java
 	javadoc -private -linksource -d javadocs *.java
 
 clean:
 	rm *.class
+	rm -rf javadocs
