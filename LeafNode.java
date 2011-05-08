@@ -17,9 +17,10 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
      * @param parent The parent of this node.
      */
 	@SuppressWarnings({"unchecked"})
-    public LeafNode( K key, Node<K,V> parent) {
+    public LeafNode( K key, V value, Node<K,V> parent) {
         super(key, parent);
-        children = (V[])(new Object[numKeysPerNode]);
+        children = (V[])(Array.newInstance( value.getClass(), numKeysPerNode ));
+        children[0] = value;
     }
 
     /**

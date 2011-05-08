@@ -30,7 +30,7 @@ public abstract class Node<K extends Comparable,V>
 		// generic array of the correct type. Still, we have to do an
 		// "unchecked" cast, and we don't want to be warned about it,
 		// because we've already guaranteed the type safety.
-		keys = (K[])(new Object[numKeysPerNode]);
+		keys = (K[])(Array.newInstance( key.getClass(), numKeysPerNode );
         numKeys = 0;
 		this.parent = parent;
 	}

@@ -44,14 +44,7 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
 
 		while( currentNode instanceof InternalNode )
 		{
-			if( currentNode == null )
-			{
-				return null;
-			}
-			else
-			{
-				currentNode = currentNode.getChild(key).left();
-			}
+		    currentNode = currentNode.getChild(key).left();
 		}
 		if( currentNode instanceof LeafNode ) {
             return currentNode.getChild(key).right();
