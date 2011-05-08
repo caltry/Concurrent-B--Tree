@@ -31,7 +31,8 @@ public abstract class Node<K extends Comparable,V>
 		// "unchecked" cast, and we don't want to be warned about it,
 		// because we've already guaranteed the type safety.
 		keys = (K[])(Array.newInstance( key.getClass(), numKeysPerNode );
-        numKeys = 0;
+        keys[0] = key;
+        numKeys = 1;
 		this.parent = parent;
 	}
 
