@@ -4,6 +4,7 @@
  * Parallel Computing I
  *
  * Author: David C. Larsen <dcl9934@cs.rit.edu>
+ * Author: Benjamin David Mayes <bdm8233@rit.edu>
  * Date: April. 12, 2011
  */
 
