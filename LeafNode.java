@@ -20,11 +20,18 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
      * @param parent The parent of this node.
      */
 	@SuppressWarnings({"unchecked"})
-    public LeafNode( K key, V value, Node<K,V> parent) {
-        super(key, parent);
+    public LeafNode( K key, V value ) {
+        super(key);
         children = (V[])(Array.newInstance( value.getClass(), numKeysPerNode ));
         children[0] = value;
     }
+
+    private LeafNode( K[] keys, V[] values, Node<K,V> parent, Node<K,V> next ) {
+        super( keys, parent );
+        children = Arrays.copyOf( values, numKeysPerNode + 1);
+        this.next = next;
+    }
+
 
     /**
      * Get the child of the given key.
@@ -55,6 +62,7 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
      * @param value The value of the key to add.
      * @return True if success, false otherwise.
      */
+	@SuppressWarnings({"unchecked"})
     public boolean addValue( K key, V value )
     {
         // we need to insert the key:value pair in order
@@ -88,21 +96,17 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
     public Union.Left<Node<K,V>,V> split()
     {
         LeafNode<K,V> newNode;
-        newNode = new LeafNode<K,V>( keys[(1+keys.length)/2],
-                                     children[(1+children.length)/2],
-                                     this.parent );
-        newNode.next = this.next;
+        // Number of children of a leaf node is the same as the number
+        // of keys.
+        newNode = new LeafNode<K,V>( 
+                Arrays.copyOfRange( this.keys, (1+keys.length)/2, numKeysPerNode ),
+                Arrays.copyOfRange( this.children, (1+keys.length)/2, keys.length ),
+                this.parent,
+                this.next );
         this.next = newNode;
-
-        // Copy the larger keys to the new node
-        newNode.keys = Arrays.copyOfRange( this.keys,
-                                           (1+keys.length)/2,
-                                           keys.length );
-
-        // Copy the values corresponding to the larger keys to the new node.
-        newNode.children = Arrays.copyOfRange( this.children,
-                                               (1+children.length)/2,
-                                               keys.length );
+        //TODO: Do we want resizing here?
+        // if so uncomment the next line
+        // this.numkeys = (1+keys.length)/2
         return new Union.Left<Node<K,V>,V>(newNode);
     }
 }

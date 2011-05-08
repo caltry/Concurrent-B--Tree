@@ -19,9 +19,15 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      * @param parent The parent of this node.
      */
 	@SuppressWarnings({"unchecked"})
-    public InternalNode( K key, Node<K,V> parent) {
-        super(key, parent);
+    public InternalNode( K key ) {
+        super(key);
         children = new Node[numKeysPerNode+1];
+    }
+
+    public InternalNode( K[] keys, Node<K,V>[] children, Node<K,V> parent, Node<K,V> next ) {
+        super( keys, parent );
+        children = Arrays.copyOf( children, numKeysPerNode + 1 );
+        this.next = next;
     }
 
     /**
@@ -45,16 +51,17 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
     public Union.Left<Node<K,V>,V> split()
     {
         InternalNode<K,V> newNode;
-        newNode = new InternalNode<K,V>( keys[(1+keys.length)/2],
-                                         this.parent );
-        newNode.next = this.next;
+        newNode = new InternalNode<K,V>( 
+                Arrays.copyOfRange( this.keys, (1+keys.length)/2, numKeysPerNode ),
+                Arrays.copyOfRange( this.children, (1+children.length)/2, children.length ),
+               this.parent,
+               this.next );
         this.next = newNode;
-        
-        // Copy the larger keys to the new nodes
-        newNode.keys = Arrays.copyOfRange( this.keys,
-                                           (1+keys.length)/2,
-                                           keys.length);
-
+       
+        //TODO: Do we want resizing here?
+        // If so uncomment the next line
+        //this.numKeys = (1+keys.length)/2
         return new Union.Left<Node<K,V>,V>(newNode);
     }
 }
+
