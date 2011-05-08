@@ -37,7 +37,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      * @param key The key corresponding to the <b>childNode</b>.
      * @param childNode The node that the <b>key</b> should map to.
      */
-    public void addChild( K key, Node<K,V> childNode )
+    public boolean addChild( K key, Node<K,V> childNode )
     {
         if( numKeys < keys.length )
         {
@@ -61,7 +61,9 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             }
 
             children[sentry] = childNode;
+            return true;
         }
+        return false;
     }
 
 
@@ -71,7 +73,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      * @param key The key to get the child of.
      * @return A Node in a Union.
      */
-	@SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"unchecked"})
     public Union.Left<Node<K,V>,V> getChild( K key ) {
 		// Linear search, get the K'th child
 		int sentry = 0;
@@ -83,7 +85,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
     }
 
     /** {@inheritDoc} */
-    public Union.Left<Node<K,V>,V> split()
+    public Union.Left<InternalNode<K,V>,LeafNode<K,V>> split()
     {
         InternalNode<K,V> newNode;
         newNode = new InternalNode<K,V>( 
@@ -95,7 +97,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
        
         // Resize our key array
         this.numKeys = (1+keys.length)/2;
-        return new Union.Left<Node<K,V>,V>(newNode);
+        return new Union.Left<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }
 }
 

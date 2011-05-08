@@ -1,5 +1,5 @@
 /*
- * File: InternalNode.java
+ * File: LeafNode.java
  * Description: An internal node in the BTree
  * Author: Benjamin David Mayes <bdm8233@rit.edu>
  */
@@ -93,7 +93,7 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
     }
     
     /** {@inheritDoc} */
-    public Union.Left<Node<K,V>,V> split()
+    public Union.Right<InternalNode<K,V>,LeafNode<K,V>> split()
     {
         LeafNode<K,V> newNode;
         // Number of children of a leaf node is the same as the number
@@ -108,6 +108,6 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         // Resize our key array
         this.numKeys = (1+keys.length)/2;
 
-        return new Union.Left<Node<K,V>,V>(newNode);
+        return new Union.Right<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }
 }

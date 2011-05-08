@@ -104,5 +104,5 @@ public abstract class Node<K extends Comparable,V>
     /**
      * Splits a node into two nodes, returning the second node.
      */
-    public abstract Union<Node<K,V>,V> split();
+    public abstract Union<InternalNode<K,V>,LeafNode<K,V>> split();
 }

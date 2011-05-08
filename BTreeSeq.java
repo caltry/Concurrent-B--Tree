@@ -68,12 +68,23 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
         }
         if( currentNode instanceof LeafNode ) {
             LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
+                
             if( !leaf.addValue( key, value ) ) {
-                // we are going to have to split at least one node
+                LeafNode<K,V> right = leaf.split().right();
+                LeafNode<K,V> left = leaf;
+                //TODO Add value to correct leaf
+                InternalNode<K,V> parent = (InternalNode)right.parent;
+                while( parent != null && !parent.addChild(right.lowerBound(), right) ) {
+                    InternalNode<K,V> newRight =  parent.split().left();
+                    //TODO: Add value to correct parent
+                    parent = (InternalNode<K,V>)newRight.parent;
+                }
+
+                if( parent == null ) {
+                    // root has to be split
+                } 
             }
-        } else {
-            return null;
-        }
+        } 
         // we need to return an old value here.
         // TODO: How do we get this?
         return null;
