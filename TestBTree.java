@@ -2,8 +2,16 @@ public class TestBTree
 {
 	public static void main(String[] args)
 	{
-		BTreeSeq tree = new BTreeSeq();
+		BTree seqBTree = new BTreeSeq();
 
-		System.out.println(tree.put(6,6));
+		LeafNode<Integer, Integer> root = new LeafNode<Integer, Integer>( new Integer(1), null);
+		root.addValue( new Integer(1), new Integer(11) );
+		root.addValue( new Integer(2), new Integer(11) );
+		root.addValue( new Integer(3), new Integer(11) );
+		root.addValue( new Integer(4), new Integer(11) );
+		root.addValue( new Integer(5), new Integer(11) );
+		root.addValue( new Integer(6), new Integer(11) );
+		root.addValue( new Integer(7), new Integer(11) );
+		root.addValue( new Integer(8), new Integer(11) );
 	}
 }
