@@ -69,7 +69,7 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
         }
 
         if( currentNode != null ) {
-            // Lets save the current node
+            // save the current node
             LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
                 
             // can we fit the new value into this node?

@@ -108,7 +108,7 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         this.numKeys = numKeysPerNode/2;
         newNode.numKeys = numKeysPerNode/2;
 
-        if( key.compareTo( newNode.lowerBound() ) > 0 ) {
+        if( key.compareTo( newNode.lowerBound() ) >= 0 ) {
             newNode.addValue( key, value );
         } else {
             addValue( key, value );
