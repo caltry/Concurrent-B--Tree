@@ -35,6 +35,8 @@ public class TestBTree
 
         testInsertion( seqBTree );
         seqBTree.clear();
+        testInsertionCorrectness( seqBTree );
+        seqBTree.clear();
         System.out.println(seqBTree.getClass().toString() + " stress test: " +
             stressTestInsertion( seqBTree ) + " msec");
 	}
@@ -50,6 +52,25 @@ public class TestBTree
         for(int i = 0; i < 100; i++)
         {
             tree.put( i, i*10 );
+        }
+    }
+    
+    /**
+     * like {@link testInsertion}, but tests for correctness.
+     *
+     * @throws RuntimeException If an error is found. Read the exception's
+     *  message for details.
+     */
+    public static void testInsertionCorrectness(BTree<Integer, Integer> tree)
+    {
+        for( int i = 0; i < 100; i++ )
+        {
+            tree.put( i, i*10);
+            if( tree.get( i ) != i*10 )
+            {
+                throw new RuntimeException( "tree.get( " + i + " ) should be: " +
+                    i*10 + " , but it's " + tree.get( i ) + " !" );
+            }
         }
     }
 
