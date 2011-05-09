@@ -16,7 +16,7 @@ import java.util.Arrays;
  */
 public abstract class Node<K extends Comparable,V>
 {
-	protected static final int numKeysPerNode = 6;
+	protected static final int numKeysPerNode = 2;
 
     protected int numKeys;
     protected K[] keys;
@@ -37,7 +37,7 @@ public abstract class Node<K extends Comparable,V>
         // generic array of the correct type. Still, we have to do an
         // "unchecked" cast, and we don't want to be warned about it,
         // because we've already guaranteed the type safety.
-        keys = (K[])(Array.newInstance( key.getClass(), numKeysPerNode ));
+        keys = (K[])(Array.newInstance( key.getClass(), numKeysPerNode +  + 1 ));
         keys[0] = key;
         numKeys = 1;
     }
@@ -104,5 +104,5 @@ public abstract class Node<K extends Comparable,V>
     /**
      * Splits a node into two nodes, returning the second node.
      */
-    public abstract Union<InternalNode<K,V>,LeafNode<K,V>> split();
+    //public abstract Union<InternalNode<K,V>,LeafNode<K,V>> split( K key, V value );
 }

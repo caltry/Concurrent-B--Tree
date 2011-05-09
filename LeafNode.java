@@ -22,13 +22,13 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
 	@SuppressWarnings({"unchecked"})
     public LeafNode( K key, V value ) {
         super(key);
-        children = (V[])(Array.newInstance( value.getClass(), numKeysPerNode ));
+        children = (V[])(Array.newInstance( value.getClass(), numKeysPerNode + 2 ));
         children[0] = value;
     }
 
     private LeafNode( K[] keys, V[] values, Node<K,V> parent, Node<K,V> next ) {
         super( keys, parent );
-        children = Arrays.copyOf( values, numKeysPerNode + 1);
+        children = Arrays.copyOf( values, numKeysPerNode + 2);
         this.next = next;
     }
 
@@ -93,21 +93,26 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
     }
     
     /** {@inheritDoc} */
-    public Union.Right<InternalNode<K,V>,LeafNode<K,V>> split()
+    public Union.Right<InternalNode<K,V>,LeafNode<K,V>> split( K key, V value )
     {
-        LeafNode<K,V> newNode;
         // Number of children of a leaf node is the same as the number
         // of keys.
-        newNode = new LeafNode<K,V>( 
-                Arrays.copyOfRange( this.keys, (1+keys.length)/2, numKeysPerNode ),
-                Arrays.copyOfRange( this.children, (1+keys.length)/2, keys.length ),
+        LeafNode<K,V> newNode = new LeafNode<K,V>( 
+                Arrays.copyOfRange( this.keys, (numKeysPerNode)/2, numKeysPerNode ),
+                Arrays.copyOfRange( this.children, numKeysPerNode/2, numKeysPerNode ),
                 this.parent,
                 this.next );
         this.next = newNode;
 
         // Resize our key array
-        this.numKeys = (1+keys.length)/2;
-        newNode.numKeys = keys.length - numKeys;
+        this.numKeys = numKeysPerNode/2;
+        newNode.numKeys = numKeysPerNode/2;
+
+        if( key.compareTo( newNode.lowerBound() ) > 0 ) {
+            newNode.addValue( key, value );
+        } else {
+            addValue( key, value );
+        }
 
         return new Union.Right<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }

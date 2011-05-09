@@ -75,40 +75,27 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
             // can we fit the new value into this node?
             if( !leaf.addValue( key, value ) ) {
                 // We have to split the node
-                LeafNode<K,V> right = leaf.split().right();
-
-                // add the value to the correct leaf
-                if ( key.compareTo( right.lowerBound() ) >= 0 ) {
-                    right.addValue( key, value );
-                } else {
-                    leaf.addValue( key, value );
-                }
-                 
+                LeafNode<K,V> right = leaf.split(key, value).right();
                 Node<K,V> newRight = right;
                 // we need to add the new node to the parent node, we then need to repeat this process.
                 InternalNode<K,V> parent = (InternalNode<K,V>)right.parent;
+
                 // loop until we reach the root node or we are successfully able to add a child node
-                while( parent != null && !parent.addChild(newRight.lowerBound(), newRight) ) {
+                K addToParent = newRight.lowerBound();
+                while( parent != null && !parent.addChild(addToParent, newRight) ) {
+                    K addToParentNew = parent.getMiddleKey();
                     // split the parent node
-                    InternalNode<K,V> parentRight =  parent.split().left();
-
-                    // add the pointer to the child to the correct parent
-                    K newLB = newRight.lowerBound();
-                    if( newLB.compareTo( parentRight.lowerBound() ) >= 0 ) {
-                        parentRight.addChild( newLB, newRight );
-                        newRight.parent = parentRight;
-                    } else {
-                        parent.addChild( newLB, newRight );
-                    }
-
+                    InternalNode<K,V> parentRight =  (InternalNode<K,V>)parent.split(key, newRight).left();
+                    
                     // update the parent and the right node
+                    addToParent = addToParentNew;
                     parent = (InternalNode<K,V>)parent.parent;
                     newRight = parentRight;
                 }
 
                 // The root has been split, we need to create a new root.
                 if( parent == null ) {
-                    Node<K,V> newRoot = new InternalNode<K,V>( root, newRight );
+                    Node<K,V> newRoot = new InternalNode<K,V>( root, newRight,addToParent );
                     root.parent = newRoot;
                     newRight.parent = newRoot;
                     root = newRoot;

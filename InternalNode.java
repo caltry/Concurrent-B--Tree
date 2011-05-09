@@ -4,6 +4,7 @@
  * Author: Benjamin David Mayes <bdm8233@rit.edu>
  */
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
@@ -19,16 +20,16 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      * @param parent The parent of this node.
      */
     @SuppressWarnings({"unchecked"})
-        public InternalNode( Node<K,V> lChild, Node<K,V> rChild ) {
-            super(rChild.lowerBound());
-            children = new Node[numKeysPerNode+1];
-            children[0] = lChild;
-            children[1] = rChild;
+        public InternalNode( Node<K,V> lChild, Node<K,V> rChild, K key ) {
+            super(key);
+            this.children = (Node<K,V>[])Array.newInstance( lChild.getClass() , numKeysPerNode+2 );
+            this.children[0] = lChild;
+            this.children[1] = rChild;
         }
 
     public InternalNode( K[] keys, Node<K,V>[] children, Node<K,V> parent, Node<K,V> next ) {
         super( keys, parent );
-        children = Arrays.copyOf( children, numKeysPerNode + 1 );
+        this.children = Arrays.copyOf( children, numKeysPerNode + 1 );
         this.next = next;
     }
 
@@ -41,7 +42,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      */
     public boolean addChild( K key, Node<K,V> childNode )
     {
-        if( numKeys < keys.length )
+        if( numKeys < numKeysPerNode )
         {
             int sentry = 0;
             while( sentry < numKeys && keys[sentry].compareTo(key) < 0 )
@@ -91,19 +92,36 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         }
 
     /** {@inheritDoc} */
-    public Union.Left<InternalNode<K,V>,LeafNode<K,V>> split()
+    public Union.Left<InternalNode<K,V>,LeafNode<K,V>> split( K key, Node<K,V> value )
     {
+        int i = 0;
+        while( i < numKeysPerNode && key.compareTo( keys[i] ) > 0 ) {
+            ++i;
+        }
+        for( int j = numKeysPerNode; j > i; --j ) {
+            keys[j] = keys[j-1];
+            children[j+1] = children[j];
+        }
+
+        keys[i] = key;
+        children[i+1] = value;
+        System.out.println( "KEYS: " + Arrays.toString( keys ) );
+
         InternalNode<K,V> newNode;
         newNode = new InternalNode<K,V>( 
-                Arrays.copyOfRange( this.keys, (1+keys.length)/2, numKeysPerNode ),
-                Arrays.copyOfRange( this.children, (1+children.length)/2, children.length ),
+                Arrays.copyOfRange( this.keys, keys.length/2 + 1, keys.length ),
+                Arrays.copyOfRange( this.children, (children.length+1)/2, children.length ),
                 this.parent,
                 this.next );
         this.next = newNode;
+    
+        System.out.println( "MIDDLE: " + keys[keys.length/2] );
+        System.out.println( "NEW NODE L: " + Arrays.toString(Arrays.copyOfRange(this.keys, 0, keys.length/2) ) );
+        System.out.println( "NEW NODE R: " + Arrays.toString(newNode.keys) );
 
         // Resize our key array
-        this.numKeys = (1+keys.length)/2;
-        newNode.numKeys = keys.length - numKeys;
+        this.numKeys = (keys.length)/2;
+        newNode.numKeys = keys.length/2; 
         return new Union.Left<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }
 
@@ -115,9 +133,13 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         for( int i = 0; i < numKeys; ++i )
         {
             output += keys[i] + ":" + children[i+1].toString(); 
-            if( i < numKeys ) output += ", ";
+            if( i < numKeys - 1 ) output += ", ";
         }
-        return output + "]";
+        return output + "]--";
+    }
+
+    public K getMiddleKey() {
+        return keys[keys.length/2];
     }
 }
 
