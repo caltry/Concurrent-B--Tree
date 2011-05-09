@@ -62,26 +62,59 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
     /** {@inheritDoc} */
     public V put( K key, V value )
     {
+        // find the leaf node that would contain this value
         Node<K,V> currentNode = root;
         while( currentNode instanceof InternalNode ) {
             currentNode = currentNode.getChild(key).left();
         }
-        if( currentNode instanceof LeafNode ) {
+
+        // TODO: Do we need this if statement? We shouldn't encounter a null node
+        if( currentNode != null ) {
+            // Lets save the current node
             LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
                 
+            // can we fit the new value into this node?
             if( !leaf.addValue( key, value ) ) {
+                // We have to split the node
                 LeafNode<K,V> right = leaf.split().right();
-                LeafNode<K,V> left = leaf;
-                //TODO Add value to correct leaf
-                InternalNode<K,V> parent = (InternalNode)right.parent;
-                while( parent != null && !parent.addChild(right.lowerBound(), right) ) {
+
+                // add the value to the correct leaf
+                if ( key.compareTo( right.lowerBound() ) >= 0 ) {
+                    right.addValue( key, value );
+                } else {
+                    leaf.addValue( key, value );
+                }
+                 
+                Node<K,V> parentRight = right;
+                // we need to add the new node to the parent node, we then need to repeat this process.
+                InternalNode<K,V> parent = (InternalNode<K,V>)right.parent;
+                // loop until we reach the root node or we are successfully able to add a child node
+                while( parent != null && !parent.addChild(parentRight.lowerBound(), parentRight) ) {
+                    // split the parent node
                     InternalNode<K,V> newRight =  parent.split().left();
-                    //TODO: Add value to correct parent
+
+                    // add the pointer to the child to the correct parent
+                    K newLB = newRight.lowerBound();
+                    if( newLB.compareTo( newRight.lowerBound()) >= 0 ) {
+                        newRight.addChild( newLB, newRight );
+                    } else {
+                        parent.addChild( newLB, newRight );
+                    }
+
+                    // update the parent and the right node
                     parent = (InternalNode<K,V>)newRight.parent;
+                    parentRight = newRight;
                 }
 
+                // We need to add the new node to the parent. If this fails we
+                // split the parent.
                 if( parent == null ) {
-                    // root has to be split
+                    if( !parent.addChild( parentRight.lowerBound(), parentRight ) ) {
+                        InternalNode<K,V> newRoot = new InternalNode<K,V>( (InternalNode<K,V>)root, (InternalNode<K,V>)parentRight );
+                        root.parent = newRoot;
+                        parentRight.parent = newRoot;
+                        root = newRoot;
+                    }
                 } 
             }
         } 

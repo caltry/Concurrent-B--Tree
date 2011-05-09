@@ -13,15 +13,17 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
     private Node<K,V>[] children;
 
     /**
-     * Constructs an InternalNode with K as the key and parent as the parent.
+     * Constructs a new root InternalNode with K as the key and parent as the parent.
      *
      * @param key The initial key in this node.
      * @param parent The parent of this node.
      */
 	@SuppressWarnings({"unchecked"})
-    public InternalNode( K key ) {
-        super(key);
+    public InternalNode( InternalNode<K,V> lChild, InternalNode<K,V> rChild ) {
+        super(rChild.lowerBound());
         children = new Node[numKeysPerNode+1];
+        children[0] = lChild;
+        children[1] = rChild;
     }
 
     public InternalNode( K[] keys, Node<K,V>[] children, Node<K,V> parent, Node<K,V> next ) {
