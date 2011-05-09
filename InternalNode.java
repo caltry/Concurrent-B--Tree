@@ -111,7 +111,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         
         for( int i = 0; i < numKeys; ++i )
         {
-            output += keys[i].toString() + ", ";
+            output += children[i].toString() + ", ";
         }
         
         return output + "]";
