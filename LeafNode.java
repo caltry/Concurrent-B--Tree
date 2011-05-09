@@ -67,7 +67,7 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
     {
         // we need to insert the key:value pair in order
         int i = 0;
-        while( key.compareTo( keys[i] ) < 0 && i < numKeys ) {
+        while( i < numKeys && key.compareTo( keys[i] ) < 0 ) {
             ++i;
         }
         if( keys[i].compareTo( key ) == 0 ) {

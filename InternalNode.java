@@ -79,7 +79,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
     public Union.Left<Node<K,V>,V> getChild( K key ) {
 		// Linear search, get the K'th child
 		int sentry = 0;
-		while( sentry < keys.length && keys[sentry].compareTo(key) < 0 )
+		while( sentry < numKeys && keys[sentry].compareTo(key) < 0 )
 		{
 			sentry++;
 		}
