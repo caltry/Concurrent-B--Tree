@@ -18,13 +18,13 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      * @param key The initial key in this node.
      * @param parent The parent of this node.
      */
-	@SuppressWarnings({"unchecked"})
-    public InternalNode( Node<K,V> lChild, Node<K,V> rChild ) {
-        super(rChild.lowerBound());
-        children = new Node[numKeysPerNode+1];
-        children[0] = lChild;
-        children[1] = rChild;
-    }
+    @SuppressWarnings({"unchecked"})
+        public InternalNode( Node<K,V> lChild, Node<K,V> rChild ) {
+            super(rChild.lowerBound());
+            children = new Node[numKeysPerNode+1];
+            children[0] = lChild;
+            children[1] = rChild;
+        }
 
     public InternalNode( K[] keys, Node<K,V>[] children, Node<K,V> parent, Node<K,V> next ) {
         super( keys, parent );
@@ -44,26 +44,29 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         if( numKeys < keys.length )
         {
             int sentry = 0;
-            while( sentry < keys.length && keys[sentry].compareTo(key) < 0 )
+            while( sentry < numKeys && keys[sentry].compareTo(key) < 0 )
             {
                 sentry++;
             }
 
-            numKeys++;
+            if( sentry <= numKeys ) {
+                numKeys++;
 
-            // Now we're at the index where the key should be inserted.
-            // We need to push everything else out of the way before inserting
-            // here.
+                // Now we're at the index where the key should be inserted.
+                // We need to push everything else out of the way before inserting
+                // here.
 
-            int end = numKeys;
-            while( end != sentry )
-            {
-                keys[end] = keys[end-1];
-                end--;
-            }
-
-            children[sentry] = childNode;
-            return true;
+                int end = numKeys;
+                while( end != sentry )
+                {
+                    keys[end] = keys[end-1];
+                    end--;
+                }
+                
+                keys[sentry] = key;
+                children[sentry] = childNode;
+                return true;
+            } 
         }
         return false;
     }
@@ -76,15 +79,15 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      * @return A Node in a Union.
      */
     @SuppressWarnings({"unchecked"})
-    public Union.Left<Node<K,V>,V> getChild( K key ) {
-		// Linear search, get the K'th child
-		int sentry = 0;
-		while( sentry < numKeys && keys[sentry].compareTo(key) < 0 )
-		{
-			sentry++;
-		}
-		return new Union.Left<Node<K,V>,V>(children[sentry]);
-    }
+        public Union.Left<Node<K,V>,V> getChild( K key ) {
+            // Linear search, get the K'th child
+            int sentry = 0;
+            while( sentry < numKeys && keys[sentry].compareTo(key) < 0 )
+            {
+                sentry++;
+            }
+            return new Union.Left<Node<K,V>,V>(children[sentry]);
+        }
 
     /** {@inheritDoc} */
     public Union.Left<InternalNode<K,V>,LeafNode<K,V>> split()
@@ -93,10 +96,10 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         newNode = new InternalNode<K,V>( 
                 Arrays.copyOfRange( this.keys, (1+keys.length)/2, numKeysPerNode ),
                 Arrays.copyOfRange( this.children, (1+children.length)/2, children.length ),
-               this.parent,
-               this.next );
+                this.parent,
+                this.next );
         this.next = newNode;
-       
+
         // Resize our key array
         this.numKeys = (1+keys.length)/2;
         return new Union.Left<InternalNode<K,V>,LeafNode<K,V>>(newNode);

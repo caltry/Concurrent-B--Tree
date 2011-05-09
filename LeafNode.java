@@ -43,7 +43,7 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
     public Union.Right<Node<K,V>,V> getChild( K key ) {
         int i = 0;
         // The contents of the node are sorted, iterate while lexicographically less.
-        while( i < numKeysPerNode && keys[i].compareTo( key ) < 0 ) {
+        while( i < numKeys && keys[i].compareTo( key ) < 0 ) {
             ++i;
         }
 
