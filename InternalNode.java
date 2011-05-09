@@ -49,9 +49,8 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
                 sentry++;
             }
 
-            if( sentry <= numKeys ) {
-                numKeys++;
 
+            if( sentry < numKeysPerNode ) {
                 // Now we're at the index where the key should be inserted.
                 // We need to push everything else out of the way before inserting
                 // here.
@@ -60,11 +59,13 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
                 while( end != sentry )
                 {
                     keys[end] = keys[end-1];
-                    end--;
+                    children[end+1] = children[end];
+                    --end;
                 }
                 
                 keys[sentry] = key;
-                children[sentry] = childNode;
+                children[sentry+1] = childNode;
+                numKeys++;
                 return true;
             } 
         }
@@ -102,18 +103,20 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
 
         // Resize our key array
         this.numKeys = (1+keys.length)/2;
+        newNode.numKeys = keys.length - numKeys;
         return new Union.Left<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }
 
     public String toString()
     {
-        String output = "[";
-        
+        String output = "[I";
+
+        output += "["+children[0].toString()+"], ";  
         for( int i = 0; i < numKeys; ++i )
         {
-            output += children[i].toString() + ", ";
+            output += keys[i] + ":" + children[i+1].toString(); 
+            if( i < numKeys ) output += ", ";
         }
-        
         return output + "]";
     }
 }

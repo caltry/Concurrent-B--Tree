@@ -16,7 +16,7 @@ import java.util.Arrays;
  */
 public abstract class Node<K extends Comparable,V>
 {
-	protected static final int numKeysPerNode = 7;
+	protected static final int numKeysPerNode = 6;
 
     protected int numKeys;
     protected K[] keys;

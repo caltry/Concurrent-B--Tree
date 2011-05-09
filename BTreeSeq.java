@@ -118,7 +118,6 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
             root = new LeafNode<K,V>( key, value );
         }
 
-        System.out.println(root);
 
         // we need to return an old value here.
         // TODO: How do we get this?

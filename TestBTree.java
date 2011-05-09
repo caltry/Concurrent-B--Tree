@@ -53,6 +53,9 @@ public class TestBTree
         {
             System.out.println( i + ": " + (i*10) );
             tree.put( i, i*10 );
+            if( i <= 11 ) {
+                System.out.println( tree );
+            }
         }
     }
     

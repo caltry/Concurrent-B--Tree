@@ -67,10 +67,10 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
     {
         // we need to insert the key:value pair in order
         int i = 0;
-        while( i < numKeys && key.compareTo( keys[i] ) < 0 ) {
+        while( i < numKeys && keys[i].compareTo( key ) < 0 ) {
             ++i;
         }
-        if( keys[i].compareTo( key ) == 0 ) {
+        if( i != numKeys && keys[i].compareTo( key ) == 0 ) {
             // we can replace the old value for this key
             children[i] = value;
         } else if( numKeys != numKeysPerNode) {
@@ -107,13 +107,14 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
 
         // Resize our key array
         this.numKeys = (1+keys.length)/2;
+        newNode.numKeys = keys.length - numKeys;
 
         return new Union.Right<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }
 
     public String toString()
     {
-        String output = "[";
+        String output = "[L";
 
         for( int i = 0; i < numKeys; ++i )
         {
