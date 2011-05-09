@@ -82,10 +82,11 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
 
                 // loop until we reach the root node or we are successfully able to add a child node
                 K addToParent = newRight.lowerBound();
+                System.out.println( addToParent );
                 while( parent != null && !parent.addChild(addToParent, newRight) ) {
-                    K addToParentNew = parent.getMiddleKey();
                     // split the parent node
-                    InternalNode<K,V> parentRight =  (InternalNode<K,V>)parent.split(key, newRight).left();
+                    InternalNode<K,V> parentRight =  (InternalNode<K,V>)parent.split(addToParent, newRight).left();
+                    K addToParentNew = parent.getMiddleKey();
                     
                     // update the parent and the right node
                     addToParent = addToParentNew;
