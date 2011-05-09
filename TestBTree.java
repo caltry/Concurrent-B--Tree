@@ -32,13 +32,17 @@ public class TestBTree
 		root.addValue( new Integer(6), new Integer(11) );
 		root.addValue( new Integer(7), new Integer(11) );
 		root.addValue( new Integer(8), new Integer(11) );
-
-        testInsertion( seqBTree );
-        seqBTree.clear();
-        testInsertionCorrectness( seqBTree );
-        seqBTree.clear();
-        System.out.println(seqBTree.getClass().toString() + " stress test: " +
-            stressTestInsertion( seqBTree ) + " msec");
+		
+		if( false )
+		{
+			testInsertion( seqBTree );
+			seqBTree.clear();
+			testInsertionCorrectness( seqBTree );
+			seqBTree.clear();
+			System.out.println(seqBTree.getClass().toString() + " stress test: " +
+				stressTestInsertion( seqBTree ) + " msec");
+		}
+		testInternalNodeSplitting();
 	}
     
     /**
@@ -93,4 +97,35 @@ public class TestBTree
 
         return System.currentTimeMillis() - startTime;
     }
+
+	public static void testInternalNodeSplitting()
+	{
+		InternalNode<Integer, Integer> root =
+			new InternalNode<Integer, Integer>( new LeafNode<Integer, Integer>(1, 1*10),
+												new LeafNode<Integer, Integer>(5, 5*10),
+												5);
+		
+		// Loop until we're ready to split our node.
+		int blah = 5;
+		while( root.addChild( ++blah,  new LeafNode<Integer, Integer>( blah, blah * 10) ) );
+
+		System.out.println( "before splitting: " + root );
+
+		// Splitting splitting splitting your hair, erm, node.
+		InternalNode<Integer,Integer> rightNode = root.split( new Integer(blah),
+															  new LeafNode<Integer, Integer>(
+															  blah, blah*10) ).left();
+		InternalNode<Integer,Integer> leftNode = root;
+
+		System.out.println( "left: " + leftNode );
+		System.out.println( "right: "  + rightNode );
+
+		root = new InternalNode<Integer, Integer>( leftNode,
+												   rightNode,
+												   leftNode.getMiddleKey() );
+
+		System.out.println( root );
+
+	}
+
 }
