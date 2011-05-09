@@ -84,36 +84,34 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
                     leaf.addValue( key, value );
                 }
                  
-                Node<K,V> parentRight = right;
+                Node<K,V> newRight = right;
                 // we need to add the new node to the parent node, we then need to repeat this process.
                 InternalNode<K,V> parent = (InternalNode<K,V>)right.parent;
                 // loop until we reach the root node or we are successfully able to add a child node
-                while( parent != null && !parent.addChild(parentRight.lowerBound(), parentRight) ) {
+                while( parent != null && !parent.addChild(newRight.lowerBound(), newRight) ) {
                     // split the parent node
-                    InternalNode<K,V> newRight =  parent.split().left();
+                    InternalNode<K,V> parentRight =  parent.split().left();
 
                     // add the pointer to the child to the correct parent
                     K newLB = newRight.lowerBound();
-                    if( newLB.compareTo( newRight.lowerBound()) >= 0 ) {
-                        newRight.addChild( newLB, newRight );
+                    if( newLB.compareTo( parentRight.lowerBound() ) >= 0 ) {
+                        parentRight.addChild( newLB, newRight );
+                        newRight.parent = parentRight;
                     } else {
                         parent.addChild( newLB, newRight );
                     }
 
                     // update the parent and the right node
-                    parent = (InternalNode<K,V>)newRight.parent;
-                    parentRight = newRight;
+                    parent = (InternalNode<K,V>)parent.parent;
+                    newRight = parentRight;
                 }
 
-                // We need to add the new node to the parent. If this fails we
-                // split the parent.
+                // The root has been split, we need to create a new root.
                 if( parent == null ) {
-                    if( !parent.addChild( parentRight.lowerBound(), parentRight ) ) {
-                        InternalNode<K,V> newRoot = new InternalNode<K,V>( (InternalNode<K,V>)root, (InternalNode<K,V>)parentRight );
-                        root.parent = newRoot;
-                        parentRight.parent = newRoot;
-                        root = newRoot;
-                    }
+                    Node<K,V> newRoot = new InternalNode<K,V>( root, newRight );
+                    root.parent = newRoot;
+                    newRight.parent = newRoot;
+                    root = newRoot;
                 } 
             }
         } else {    // There isn't a root node yet

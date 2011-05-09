@@ -19,7 +19,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      * @param parent The parent of this node.
      */
 	@SuppressWarnings({"unchecked"})
-    public InternalNode( InternalNode<K,V> lChild, InternalNode<K,V> rChild ) {
+    public InternalNode( Node<K,V> lChild, Node<K,V> rChild ) {
         super(rChild.lowerBound());
         children = new Node[numKeysPerNode+1];
         children[0] = lChild;
