@@ -68,7 +68,6 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
             currentNode = currentNode.getChild(key).left();
         }
 
-        // TODO: Do we need this if statement? We shouldn't encounter a null node
         if( currentNode != null ) {
             // Lets save the current node
             LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
@@ -117,7 +116,10 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
                     }
                 } 
             }
-        } 
+        } else {    // There isn't a root node yet
+            root = new LeafNode<K,V>( key, value );
+        }
+
         // we need to return an old value here.
         // TODO: How do we get this?
         return null;
