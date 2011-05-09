@@ -104,5 +104,17 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         this.numKeys = (1+keys.length)/2;
         return new Union.Left<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }
+
+    public String toString()
+    {
+        String output = "[";
+        
+        for( int i = 0; i < numKeys; ++i )
+        {
+            output += keys[i].toString() + ", ";
+        }
+        
+        return output + "]";
+    }
 }
 
