@@ -110,4 +110,16 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
 
         return new Union.Right<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }
+
+    public String toString()
+    {
+        String output = "[";
+
+        for( int i = 0; i < numKeys; ++i )
+        {
+            output += " " + keys[i] + ":" + children[i] + ", ";
+        }
+
+        return output + "]";
+    }
 }
