@@ -22,14 +22,14 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
     @SuppressWarnings({"unchecked"})
         public InternalNode( Node<K,V> lChild, Node<K,V> rChild, K key ) {
             super(key);
-            this.children = (Node<K,V>[])Array.newInstance( lChild.getClass() , numKeysPerNode+2 );
+            this.children = (Node<K,V>[])Array.newInstance( lChild.getClass().getSuperclass() , numKeysPerNode+2 );
             this.children[0] = lChild;
             this.children[1] = rChild;
         }
 
     public InternalNode( K[] keys, Node<K,V>[] children, Node<K,V> parent, Node<K,V> next ) {
         super( keys, parent );
-        this.children = Arrays.copyOf( children, numKeysPerNode + 1 );
+        this.children = (Node<K,V>[]) Arrays.copyOf( (Node<K,V>[]) children, numKeysPerNode + 1 );
         this.next = next;
     }
 
@@ -49,6 +49,8 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             {
                 sentry++;
             }
+
+            System.out.println(this + " adding " + key + " at " + (sentry+1) + children[sentry+1]);
 
 
             if( sentry < numKeysPerNode ) {
@@ -88,6 +90,9 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             {
                 sentry++;
             }
+
+            System.out.println( this + ": you asked for the child containing " +
+                key + " I'm giving you " + sentry + children[sentry] );
             return new Union.Left<Node<K,V>,V>(children[sentry]);
         }
 
