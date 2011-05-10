@@ -83,35 +83,45 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
      * @return A Node in a Union.
      */
     @SuppressWarnings({"unchecked"})
-        public Union.Left<Node<K,V>,V> getChild( K key ) {
-            // Linear search, get the K'th child
-            int sentry = 0;
-            while( sentry < numKeys && keys[sentry].compareTo(key) <= 0 )
-            {
-                sentry++;
-            }
-
-            System.out.println( this + ": you asked for the child containing " +
-                key + " I'm giving you " + sentry + children[sentry] );
-            return new Union.Left<Node<K,V>,V>(children[sentry]);
+    public Union.Left<Node<K,V>,V> getChild( K key ) {
+        // Linear search, get the K'th child
+        int sentry = 0;
+        while( sentry < numKeys && keys[sentry].compareTo(key) <= 0 )
+        {
+            sentry++;
         }
+
+        System.out.println( this + ": you asked for the child containing " +
+            key + " I'm giving you " + sentry + children[sentry] );
+        return new Union.Left<Node<K,V>,V>(children[sentry]);
+    }
 
     /** {@inheritDoc} */
     public Union.Left<InternalNode<K,V>,LeafNode<K,V>> split( K key, Node<K,V> value )
     {
+        // splitting should NOT occur when the number of keys is less than the max number of keys per node.
+        assert numKeys == numKeysPerNode;
+
+        // find the place the key is or should be put
         int i = 0;
-        while( i < numKeysPerNode && key.compareTo( keys[i] ) > 0 ) {
+        while( i < numKeysPerNode && key.compareTo( keys[i] ) >= 0 ) {
             ++i;
         }
+        
+        // it is problematic to have duplicate keys in a node and should never happen
+        assert key.compareTo(keys[i]) != 0;
+
+        // move all the keys in children over then insert 
         for( int j = numKeysPerNode; j > i; --j ) {
             keys[j] = keys[j-1];
             children[j+1] = children[j];
         }
-
         keys[i] = key;
         children[i+1] = value;
-        System.out.println( "KEYS: " + Arrays.toString( keys ) );
+        //System.out.println( "KEYS: " + Arrays.toString( keys ) );
 
+        // create the new node, this node should have the second 
+        // floor(keys.length/2) nodes whereas the current node will have the first floor(keys.length/2)
         InternalNode<K,V> newNode;
         newNode = new InternalNode<K,V>( 
                 Arrays.copyOfRange( this.keys, keys.length/2 + 1, keys.length ),
@@ -120,16 +130,23 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
                 this.next );
         this.next = newNode;
     
-        System.out.println( "MIDDLE: " + keys[keys.length/2] );
+        /*System.out.println( "MIDDLE: " + keys[keys.length/2] );
         System.out.println( "NEW NODE L: " + Arrays.toString(Arrays.copyOfRange(this.keys, 0, keys.length/2) ) );
-        System.out.println( "NEW NODE R: " + Arrays.toString(newNode.keys) );
+        System.out.println( "NEW NODE R: " + Arrays.toString(newNode.keys) );*/
 
         // Resize our key array
         this.numKeys = (keys.length)/2;
         newNode.numKeys = keys.length/2; 
+
+        // We want to return the new InternalNode in the union.
         return new Union.Left<InternalNode<K,V>,LeafNode<K,V>>(newNode);
     }
 
+    /**
+     * Obtain a String representation of this Node
+     *
+     * @return A String representation of this Node
+     */
     public String toString()
     {
         String output = "[I";
@@ -143,7 +160,12 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         return output + "]--";
     }
 
-    public K getMiddleKey() {
+    /**
+     * Obtains the middle key of a node which has numKeysPerNode+1 keys 
+     *
+     * @return The key value to send to the parent.
+     */
+    protected K getMiddleKey() {
         return keys[keys.length/2];
     }
 }

@@ -70,9 +70,11 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
             currentNode = currentNode.getChild(key).left();
         }
 
+        V oldVal = null;
         if( currentNode != null ) {
             // save the current node
             LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
+            oldVal = leaf.getChild(key).right();
                 
             // can we fit the new value into this node?
             if( !leaf.addValue( key, value ) ) {
@@ -128,10 +130,7 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
             root = new LeafNode<K,V>( key, value );
         }
 
-
-        // we need to return an old value here.
-        // TODO: How do we get this?
-        return null;
+        return oldVal;
     }
 
     /** {@inheritDoc} */
