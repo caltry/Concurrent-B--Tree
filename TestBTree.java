@@ -154,12 +154,18 @@ public class TestBTree
             if( components.length < 2 )
             {
                 System.out.println("Command not understood.");
-                System.out.println("Try: put <value> or get <value>");
+                System.out.println("Try: put <key> <value> or get <key> <value>");
+                continue;
             }
             
             try{
                 if( components[0].equalsIgnoreCase("put") )
                 {
+                    if( components.length < 3 )
+                    {
+                        System.out.println("put <key> <value>");
+                        continue;
+                    }
                     Integer retVal = tree.put( new Integer( components[1] ),
                                                new Integer( components[2] ) );
                     System.out.println(retVal);
@@ -172,7 +178,7 @@ public class TestBTree
                 else
                 {
                     System.out.println("Command not understood: " + components[0]);
-                    System.out.println("Try: put <value> or get <value>");
+                    System.out.println("Try: put <key> <value> or get <key>");
                 }
             }
             catch( NumberFormatException nfe )
