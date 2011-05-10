@@ -48,7 +48,7 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         }
 
         // check for equality
-        if( keys[i].equals( key ) ) {
+        if( keys[i] != null && keys[i].equals( key ) ) {
                 return new Union.Right<Node<K,V>,V>( children[i] );
         }
         else {
