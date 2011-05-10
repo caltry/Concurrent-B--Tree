@@ -33,7 +33,7 @@ public class TestBTree
 		root.addValue( new Integer(7), new Integer(11) );
 		root.addValue( new Integer(8), new Integer(11) );
 		
-		if( false )
+		if( true )
 		{
 			testInsertion( seqBTree );
 			seqBTree.clear();
@@ -71,9 +71,12 @@ public class TestBTree
      */
     public static void testInsertionCorrectness(BTree<Integer, Integer> tree)
     {
+        System.out.println("\nTesting insertion correctness\n");
         for( int i = 0; i < 100; i++ )
         {
+            System.out.println( i + ": " + (i*10) );
             tree.put( i, i*10);
+            System.out.println( tree );
             if( tree.get( i ) != i*10 )
             {
                 throw new RuntimeException( "tree.get( " + i + " ) should be: " +
