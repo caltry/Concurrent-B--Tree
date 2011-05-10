@@ -133,31 +133,4 @@ public class TestBTree
 		System.out.println( root );
 
 	}
-
-	/**
-	 * Tests to see if internal nodes properly handle cascading splits.
-	 */
-	public static void testInternalNodeSplittingCascade()
-	{
-		InternalNode<Integer, Integer> smallInternal;
-		smallInternal = new InternalNode<Integer, Integer>(new LeafNode<Integer, Integer>(1, 1*100),
-														   new LeafNode<Integer, Integer>(2, 2*100),
-														   2);
-		InternalNode<Integer, Integer> root =
-			new InternalNode<Integer, Integer>( smallInternal,
-												new LeafNode<Integer, Integer>(5, 5*10),
-												5);
-		
-		// Loop until we're ready to split our node.
-		int blah = 5;
-		while( root.addChild( ++blah,  new LeafNode<Integer, Integer>( blah, blah * 10) ) );
-
-		// Loop until the lower internal node is ready to be split
-		int small = 2;
-		while( smallInternal.addChild( ++small,
-									   new LeafNode<Integer, Integer>( small, small * 100 ) ) );
-
-		
-		
-	}
 }
