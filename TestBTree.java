@@ -146,8 +146,9 @@ public class TestBTree
 
         String line;
         String[] components;
+        System.out.print(">>> ");
         while( stdin.hasNextLine() )
-        {
+        {   
             line = stdin.nextLine();
             components = line.split("\\s");
 
@@ -185,6 +186,7 @@ public class TestBTree
             {
                 System.out.println("Can't convert " + components[1] + " to an Integer");
             }
+            System.out.print(">>> ");
         }
     }
 }
