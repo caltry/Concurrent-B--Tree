@@ -10,6 +10,8 @@
 
 import edu.rit.pj.Comm;
 import java.io.IOException;
+import java.util.Scanner;
+import java.lang.NumberFormatException;
 
 /**
  * Test script for {@link BTree}s.
@@ -33,7 +35,7 @@ public class TestBTree
 		root.addValue( new Integer(7), new Integer(11) );
 		root.addValue( new Integer(8), new Integer(11) );
 		
-		if( true )
+		if( false )
 		{
 			testInsertion( seqBTree );
 			seqBTree.clear();
@@ -43,6 +45,7 @@ public class TestBTree
 				stressTestInsertion( seqBTree ) + " msec");
 		}
 		testInternalNodeSplitting();
+        testInteractive( new BTreeSeq<Integer, Integer>() );
 	}
     
     /**
@@ -133,4 +136,49 @@ public class TestBTree
 		System.out.println( root );
 
 	}
+
+    /**
+     * Runs an interactive test of the BTree.
+     */
+    public static void testInteractive( BTree<Integer, Integer> tree )
+    {
+        Scanner stdin = new Scanner(System.in);
+
+        String line;
+        String[] components;
+        while( stdin.hasNextLine() )
+        {
+            line = stdin.nextLine();
+            components = line.split("\\s");
+
+            if( components.length < 2 )
+            {
+                System.out.println("Command not understood.");
+                System.out.println("Try: put <value> or get <value>");
+            }
+            
+            try{
+                if( components[0].equalsIgnoreCase("put") )
+                {
+                    Integer retVal = tree.put( new Integer( components[1] ),
+                                               new Integer( components[2] ) );
+                    System.out.println(retVal);
+                }
+                else if( components[0].equalsIgnoreCase("get") )
+                {
+                    Integer retVal = tree.get( Integer.parseInt( components[1] ) );
+                    System.out.println(retVal);
+                }
+                else
+                {
+                    System.out.println("Command not understood: " + components[0]);
+                    System.out.println("Try: put <value> or get <value>");
+                }
+            }
+            catch( NumberFormatException nfe )
+            {
+                System.out.println("Can't convert " + components[1] + " to an Integer");
+            }
+        }
+    }
 }
