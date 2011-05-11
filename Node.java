@@ -18,7 +18,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public abstract class Node<K extends Comparable,V>
 {
-	protected static final int numKeysPerNode = 2;
+    public static int locks = 0;
+    public static int unlocks = 0;
+	protected static final int numKeysPerNode = 6;
 
     protected int numKeys;
     protected K[] keys;
@@ -53,7 +55,7 @@ public abstract class Node<K extends Comparable,V>
      * @param parent The parent node.
      */
     protected Node( K[] keys, int numKeys, Node<K,V> parent, Node<K,V> next ) {
-        this.keys = Arrays.copyOf( keys, numKeysPerNode + 1 );
+        this.keys = Utilities.copyOf( keys, numKeysPerNode + 1 );
         this.numKeys = numKeys;
         this.parent = parent;
         this.next = next;
@@ -113,7 +115,7 @@ public abstract class Node<K extends Comparable,V>
     //public abstract Union<InternalNode<K,V>,LeafNode<K,V>> split( K key, V value );
 
     public K[] getKeys() {
-        return Arrays.copyOfRange(keys,0,numKeys);
+        return Utility.copyOfRange(keys,0,numKeys);
     }
 
     /**
@@ -121,6 +123,7 @@ public abstract class Node<K extends Comparable,V>
      */
     public void lock() {
         lock.lock();
+        System.out.println( "LOCKS: " + (++locks) );
     }
 
     /**
@@ -128,5 +131,10 @@ public abstract class Node<K extends Comparable,V>
      */
     public void unlock() {
         lock.unlock();
+        System.out.println( "UNLOCKS: " + (++unlocks) );
+    }
+
+    public boolean isLocked() {
+        return ((ReentrantLock)lock).isLocked();
     }
 }

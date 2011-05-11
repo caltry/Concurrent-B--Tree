@@ -29,7 +29,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
 
     public InternalNode( K[] keys, Node<K,V>[] children, int numKeys, Node<K,V> parent, Node<K,V> next ) {
         super( keys, numKeys, parent, next );
-        this.children = (Node<K,V>[]) Arrays.copyOf( (Node<K,V>[]) children, numKeysPerNode + 2 );
+        this.children = (Node<K,V>[]) Utilities.copyOf( (Node<K,V>[]) children, numKeysPerNode + 2 );
         for( int i = 0; i <= numKeys; ++i ) {
             children[i].parent = this;
         }
@@ -51,8 +51,6 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             {
                 sentry++;
             }
-
-            //System.out.println(this + " adding " + key + " at " + (sentry+1) + children[sentry+1]);
 
 
             if( sentry < numKeysPerNode ) {
@@ -93,8 +91,6 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             sentry++;
         }
 
-        //System.out.println( this + ": you asked for the child containing " +
-        //    key + " I'm giving you " + sentry + children[sentry] );
         return new Union.Left<Node<K,V>,V>(children[sentry]);
     }
 
@@ -118,26 +114,20 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             keys[j] = keys[j-1];
             children[j+1] = children[j];
         }
-        System.out.println( keys.length );
         keys[i] = key;
         children[i+1] = value;
-        //System.out.println( "KEYS: " + Arrays.toString( keys ) );
 
         // create the new node, this node should have the second 
         // floor(keys.length/2) nodes whereas the current node will have the first floor(keys.length/2)
         InternalNode<K,V> newNode;
         newNode = new InternalNode<K,V>( 
-                Arrays.copyOfRange( this.keys, keys.length/2 + 1, keys.length ),
-                Arrays.copyOfRange( this.children, (children.length+1)/2, children.length ),
+                Utilities.copyOfRange( this.keys, keys.length/2 + 1, keys.length ),
+                Utilities.copyOfRange( this.children, (children.length+1)/2, children.length ),
                 this.keys.length/2,
                 this.parent,
                 this.next );
         this.next = newNode;
     
-        System.out.println( "MIDDLE: " + keys[keys.length/2] );
-        System.out.println( "NEW NODE L: " + Arrays.toString(Arrays.copyOfRange(this.keys, 0, keys.length/2) ) );
-        System.out.println( "NEW NODE R: " + Arrays.toString(newNode.keys) );
-
         // "resize" our key array
         this.numKeys = (keys.length)/2;
 
