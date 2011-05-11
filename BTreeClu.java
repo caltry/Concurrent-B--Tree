@@ -30,6 +30,8 @@ public class BTreeClu
 
     private static BTreeCluWorkerThread[] slaves;
 
+    private static String[] arguments;
+
     /**
      * Starts running the BTree cluster.
      */
@@ -41,6 +43,13 @@ public class BTreeClu
         world = Comm.world();
         rank = world.rank();
         size = world.size();
+        arguments = args;
+
+        if( size < 2 )
+        {
+            System.err.println("You must use at least 2 nodes.");
+            return;
+        }
         
         if( rank == 0 )
         {
@@ -48,8 +57,19 @@ public class BTreeClu
             new Thread("Load generator"){
                 public void run()
                 {
+                    int maxIter = 1000;
+                    if( arguments.length > 0 )
+                    {
+                        try{
+                            maxIter = Integer.parseInt( arguments[0] );
+                        } catch( NumberFormatException nfe )
+                        {
+                            System.err.println( nfe );
+                        }
+                    }
+
                     // TODO: Generate work here
-                    for( int i=0; i < 1000; i++ )
+                    for( int i=0; i < maxIter; i++ )
                     {
                         put( i, i*10 );
                     }
