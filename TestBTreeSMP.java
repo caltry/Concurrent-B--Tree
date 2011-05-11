@@ -29,15 +29,17 @@ public class TestBTreeSMP
 		BTree<Integer, Integer> SmpBTree = new BTreeSMP<Integer, Integer>();
         bTree = SmpBTree;
 		
-        testInsertion( SmpBTree );
-        SmpBTree.clear();
-        testInsertionCorrectness( SmpBTree );
-        SmpBTree.clear();
-        System.out.println(SmpBTree.getClass().toString() + " stress test: " +
+        //testInsertion( SmpBTree );
+        //SmpBTree.clear();
+        //testInsertionCorrectness( SmpBTree );
+        //SmpBTree.clear();
+        System.out.println(SmpBTree.getClass().toString() + " Insertion stress test: " +
             stressTestInsertion() + " msec");
-		testInternalNodeSplitting();
+        System.out.println(SmpBTree.getClass().toString() + " Lookup stress test: " +
+            stressTestLookup() + " msec");
+		//testInternalNodeSplitting();
         
-        testInteractive( new BTreeSeq<Integer, Integer>() );
+        //testInteractive( new BTreeSeq<Integer, Integer>() );
 	}
     
     /**
@@ -97,7 +99,7 @@ public class TestBTreeSMP
         {
             public void run() throws Exception
             {
-                execute(0, 10000-1, new IntegerForLoop()
+                execute(0,  1000000-1, new IntegerForLoop()
                 {
                     public void run( int first, int last )
                     {
@@ -110,6 +112,37 @@ public class TestBTreeSMP
             }
         });
 
+        return System.currentTimeMillis() - startTime;
+    }
+
+    public static long stressTestLookup() throws Exception
+    {
+        long startTime = System.currentTimeMillis();
+
+        new ParallelTeam().execute( new ParallelRegion() {
+
+            public void run() throws Exception
+            {
+                execute( 0,  1000000-1, new IntegerForLoop() {
+                    public void run( int first, int last ) {
+                        long start = System.currentTimeMillis();
+                        int incorrectLookups = 0;
+                        int i = first;
+                        while( first <= last ) {
+                            Integer j = bTree.get(first);
+                            /*if( j == null || j != 10*first ) {
+                                ++incorrectLookups;
+                            }*/
+                            ++first;
+                        }
+                        if( incorrectLookups != 0 ) {
+                            System.err.println( "Error: Tree contains " + incorrectLookups + " incorrect values." );
+                        }
+                        System.out.println( getThreadIndex() + ": [" + i + "," + last + "] "  + (System.currentTimeMillis()-start) + " msec" );
+                    }
+                    } );
+            }
+                } );
         return System.currentTimeMillis() - startTime;
     }
 	

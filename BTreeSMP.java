@@ -9,12 +9,19 @@
 
 import java.util.Map;
 import java.lang.reflect.Array;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
 {
+    private Lock lock;
     private int size = 0;
 
     private Node<K,V> root = null;
+
+    public BTreeSMP() {
+        lock = new ReentrantLock();
+    }
 
     /** {@inheritDoc} */
     public void clear()
@@ -61,21 +68,20 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     /** {@inheritDoc} */
     public V put( K key, V value )
     {
+        lock.lock();
         // find the leaf node that would contain this value
         Node<K,V> currentNode = root;
         while( currentNode instanceof InternalNode ) {
-            currentNode = currentNode.getChild(key).left();
+            Node<K,V> newNode = currentNode.getChild(key).left();
+            currentNode = newNode;
         }
 
         V oldVal = null;
+        LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
         if( currentNode != null ) {
             // save the current node
-            LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
             oldVal = leaf.getChild(key).right();
                 
-            // we need a lock on leaf
-            leaf.lock();
-
             // can we fit the new value into this node?
             if( !leaf.addValue( key, value ) ) {
                 // We have to split the node
@@ -83,40 +89,37 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
                 Node<K,V> newRight = right;
                 // we need to add the new node to the parent node, we then need to repeat this process.
                 InternalNode<K,V> parent = (InternalNode<K,V>)right.parent;
-                parent.lock();
 
                 // loop until we reach the root node or we are successfully able to add a child node
                 K addToParent = newRight.lowerBound();
-                while( parent != null && !parent.addChild(addToParent, newRight) ) {
+                while( parent != null ) {
+                    if( parent.addChild(addToParent, newRight) ) {
+                        break;
+                    }
                     // split the parent node
                     InternalNode<K,V> parentRight =  (InternalNode<K,V>)parent.split(addToParent, newRight).left();
                     K addToParentNew = parent.getMiddleKey();
                     
                     // update the parent and the right node
                     addToParent = addToParentNew;
-                    parent.parent.lock();
-                    parent.unlock();
-                    parent = (InternalNode<K,V>)parent.parent;
+                    InternalNode<K,V> newParent = (InternalNode<K,V>)parent.parent;
+                    parent = newParent;
                     newRight = parentRight;
                 }
 
                 // The root has been split, we need to create a new root.
                 if( parent == null ) {
                     Node<K,V> newRoot = new InternalNode<K,V>( root, newRight,addToParent );
-                    newRoot.lock();
                     root.parent = newRoot;
                     newRight.parent = newRoot;
                     root = newRoot;
-                    root.unlock();
-                    newRoot.unlock();
                 }
-
-                leaf.unlock();
             }
         } else {    // There isn't a root node yet
             root = new LeafNode<K,V>( key, value );
         }
 
+        lock.unlock();
         return oldVal;
     }
 
@@ -133,6 +136,7 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
         if( oldVal != null ) {
             put( key, null );
         }
+
         return oldVal;
     }
 
