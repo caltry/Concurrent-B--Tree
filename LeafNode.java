@@ -28,7 +28,7 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
 
     private LeafNode( K[] keys, V[] values, int numKeys, Node<K,V> parent, Node<K,V> next ) {
         super( keys, numKeys, parent, next );
-        children = Arrays.copyOf( values, numKeysPerNode + 2);
+        children = Utilities.copyOf( values, numKeysPerNode + 2);
     }
 
 
@@ -97,8 +97,8 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         // Number of children of a leaf node is the same as the number
         // of keys.
         LeafNode<K,V> newNode = new LeafNode<K,V>( 
-                Arrays.copyOfRange( this.keys, (numKeysPerNode)/2, numKeysPerNode ),
-                Arrays.copyOfRange( this.children, numKeysPerNode/2, numKeysPerNode ),
+                Utilities.copyOfRange( this.keys, (numKeysPerNode)/2, numKeysPerNode ),
+                Utilities.copyOfRange( this.children, numKeysPerNode/2, numKeysPerNode ),
                 numKeysPerNode/2,
                 this.parent,
                 this.next );
