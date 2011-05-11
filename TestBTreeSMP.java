@@ -80,10 +80,11 @@ public class TestBTreeSMP
         {
             System.out.println( i + ": " + (i*10) );
             System.out.println( tree );
-            if( tree.get( i ) != i*10 )
+            Integer val =  tree.get( i );
+            if( val == null || val != i*10 )
             {
                 throw new RuntimeException( "tree.get( " + i + " ) should be: " +
-                    i*10 + " , but it's " + tree.get( i ) + " !" );
+                    i*10 + " , but it's " + null + " !" );
             }
         }
     }
