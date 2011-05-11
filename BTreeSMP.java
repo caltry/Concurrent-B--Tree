@@ -4,14 +4,13 @@
  * Parallel Computing I
  *
  * Author: David C. Larsen <dcl9934@cs.rit.edu>
- * Author: Ben D. Mayes <bdm8233@cs.rit.edu>
  * Date: April. 12, 2011
  */
 
 import java.util.Map;
 import java.lang.reflect.Array;
 
-public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
+public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
 {
     private int size = 0;
 
@@ -64,8 +63,6 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     public V put( K key, V value )
     {
         // find the leaf node that would contain this value
-        //if( root != null )
-            //System.out.println("root is a " + root.getClass());
         Node<K,V> currentNode = root;
         while( currentNode instanceof InternalNode ) {
             currentNode = currentNode.getChild(key).left();
@@ -82,33 +79,12 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
                 // We have to split the node
                 LeafNode<K,V> right = leaf.split(key, value).right();
                 Node<K,V> newRight = right;
-                //System.out.println(" New right node: " + right );
                 // we need to add the new node to the parent node, we then need to repeat this process.
                 InternalNode<K,V> parent = (InternalNode<K,V>)right.parent;
 
                 // loop until we reach the root node or we are successfully able to add a child node
                 K addToParent = newRight.lowerBound();
-                if( parent != null )
-                    //System.out.println("Upper bounds: " +  newRight.upperUpper() + " " + parent.upperUpper());
-                    //System.out.println( "adding " +  addToParent + " to my parent" );
-                while( parent != null ) {
-                // FIXME: We currently have a bug where we can put a new node in a parent
-                // whose upper bound will be beyond the upper bound designated by _its_ parent
-                    
-                    /*if( newRight.upperUpper().compareTo(parent.upperUpper()) > 0 )
-                    {
-                        if( parent != root )
-                        {
-                            parent = (InternalNode<K,V>)parent.parent;
-                            continue;
-                        }
-                    }*/
-
-                    if( parent.addChild( addToParent, newRight ))
-                    {
-                        break;
-                    }
-
+                while( parent != null && !parent.addChild(addToParent, newRight) ) {
                     // split the parent node
                     InternalNode<K,V> parentRight =  (InternalNode<K,V>)parent.split(addToParent, newRight).left();
                     K addToParentNew = parent.getMiddleKey();
