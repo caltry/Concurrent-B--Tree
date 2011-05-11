@@ -27,9 +27,8 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
     }
 
     private LeafNode( K[] keys, V[] values, Node<K,V> parent, Node<K,V> next ) {
-        super( keys, parent );
+        super( keys, parent, next );
         children = Arrays.copyOf( values, numKeysPerNode + 2);
-        this.next = next;
     }
 
 
@@ -48,7 +47,7 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         }
 
         // check for equality
-        if( keys[i] != null && keys[i].equals( key ) ) {
+        if( i < numKeysPerNode && keys[i] != null && keys[i].equals( key ) ) {
                 return new Union.Right<Node<K,V>,V>( children[i] );
         }
         else {

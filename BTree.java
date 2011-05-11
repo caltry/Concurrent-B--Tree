@@ -8,7 +8,7 @@
  * Date: May 7, 2011
  */
 
-public interface BTree<K,V>
+public interface BTree<K extends Comparable,V>
 {
 	/**
 	 * Empty the tree.
@@ -69,4 +69,13 @@ public interface BTree<K,V>
      * @return The number of (key,value) pairs in the tree.
      */
 	public int size();
+
+    /**
+     * Gets the root of the tree.
+     *
+     * NOTE: It is <b>unwise</b> to modify the node.
+     *
+     * @return The root node of this tree.
+     */
+    public Node<K,V> getRoot();
 }

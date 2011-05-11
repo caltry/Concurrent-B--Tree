@@ -28,9 +28,8 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         }
 
     public InternalNode( K[] keys, Node<K,V>[] children, Node<K,V> parent, Node<K,V> next ) {
-        super( keys, parent );
+        super( keys, parent, next );
         this.children = (Node<K,V>[]) Arrays.copyOf( (Node<K,V>[]) children, numKeysPerNode + 1 );
-        this.next = next;
     }
 
     /**
@@ -50,7 +49,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
                 sentry++;
             }
 
-            System.out.println(this + " adding " + key + " at " + (sentry+1) + children[sentry+1]);
+            //System.out.println(this + " adding " + key + " at " + (sentry+1) + children[sentry+1]);
 
 
             if( sentry < numKeysPerNode ) {
@@ -91,8 +90,8 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             sentry++;
         }
 
-        System.out.println( this + ": you asked for the child containing " +
-            key + " I'm giving you " + sentry + children[sentry] );
+        //System.out.println( this + ": you asked for the child containing " +
+        //    key + " I'm giving you " + sentry + children[sentry] );
         return new Union.Left<Node<K,V>,V>(children[sentry]);
     }
 
@@ -134,7 +133,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         System.out.println( "NEW NODE L: " + Arrays.toString(Arrays.copyOfRange(this.keys, 0, keys.length/2) ) );
         System.out.println( "NEW NODE R: " + Arrays.toString(newNode.keys) );*/
 
-        // Resize our key array
+        // "resize" our key array
         this.numKeys = (keys.length)/2;
         newNode.numKeys = keys.length/2; 
 

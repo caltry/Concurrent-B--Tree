@@ -10,6 +10,7 @@
 
 import edu.rit.pj.Comm;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.lang.NumberFormatException;
 
@@ -150,7 +151,7 @@ public class TestBTree
         while( stdin.hasNextLine() )
         {   
             line = stdin.nextLine();
-            components = line.split("\\s");
+            components = line.split("\\s+");
 
             /*if( components.length < 2 )
             {
@@ -174,27 +175,56 @@ public class TestBTree
                 else if( components[0].equalsIgnoreCase("get") )
                 {
                     Integer retVal = tree.get( Integer.parseInt( components[1] ) );
-                    System.out.println(retVal);
+                    System.out.println( "Value: " + retVal);
+                } 
+                else if( components[0].equalsIgnoreCase( "remove" ) ) {
+                    Integer retVal = tree.remove( Integer.parseInt( components[1] ) );
+                    System.out.println( "Old value: " + retVal ); 
                 }
                 else if( components[0].equalsIgnoreCase( "show" ) ) 
                 {
                     System.out.println( tree );
                 } else if( components[0].equalsIgnoreCase( "show-path" ) ) {
-                    //TODO Implement me.
+                    Integer key = Integer.parseInt( components[1] );
+                    Node<Integer,Integer> node = tree.getRoot();
+                    while( node instanceof InternalNode ) {
+                        System.out.println( Arrays.toString( node.getKeys() ) );
+                        node = node.getChild( key ).left();
+                    }
+                    System.out.println( Arrays.toString( node.getKeys() ) );
                 }
                 else if( components[0].equalsIgnoreCase( "clear" ) ) 
                 {
                     tree.clear();
                 }
+                else if( components[0].equalsIgnoreCase( "show-row" ) ) {
+                    int i = Integer.parseInt(components[1]);
+                    Node<Integer,Integer> node = tree.getRoot();
+                    for( int j = 0; j < i && node != null; ++j ) {
+                        // let's use the leftmost child, it doesn't matter
+                        node = node.getChild(Integer.MIN_VALUE).left(); 
+                    }
+                    if( node != null ) {
+                        System.out.print( Arrays.toString( node.getKeys() ) );
+                        node = node.getNext();
+                        while( node != null ) {
+                            System.out.print( ", " + Arrays.toString( node.getKeys() ) );
+                            node = node.getNext();
+                        }
+                        System.out.println();
+                    } else {
+                        System.err.println( "ERROR: bad level given" );
+                    }
+                }
                 else 
                 {
-                    System.out.println("Command not understood: " + components[0]);
-                    System.out.println("Commands:\n - put <key> <value>\n - get <key>\n - show\n - clear");
+                    System.err.println("Command not understood: " + components[0]);
+                    System.err.println("Commands:\n - put <key> <value>\n - get <key>\n - remove <value>\n - show-row <rownum>\n - show-path <key>\n - show\n - clear");
                 }
             }
             catch( NumberFormatException nfe )
             {
-                System.out.println("Can't convert " + components[1] + " to an Integer");
+                System.err.println("Can't convert " + components[1] + " to an Integer");
             }
             System.out.print(">>> ");
         }

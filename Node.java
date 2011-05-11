@@ -48,10 +48,11 @@ public abstract class Node<K extends Comparable,V>
      * @param keys The keys in this node.
      * @param parent The parent node.
      */
-    protected Node( K[] keys, Node<K,V> parent ) {
+    protected Node( K[] keys, Node<K,V> parent, Node<K,V> next ) {
         this.keys = Arrays.copyOf( keys, numKeysPerNode );
         numKeys = keys.length;
         this.parent = parent;
+        this.next = next;
     }
 
     /**
@@ -105,4 +106,8 @@ public abstract class Node<K extends Comparable,V>
      * Splits a node into two nodes, returning the second node.
      */
     //public abstract Union<InternalNode<K,V>,LeafNode<K,V>> split( K key, V value );
+
+    public K[] getKeys() {
+        return Arrays.copyOfRange(keys,0,numKeys);
+    }
 }
