@@ -57,9 +57,35 @@ public class TestBTreeSMP
      * @throws RuntimeException If an error is found. Read the exception's
      *  message for details.
      */
-    public static void testInsertionCorrectness(BTree<Integer, Integer> tree)
+    public static void testInsertionCorrectness(BTree<Integer, Integer> tree) throws Exception
     {
-        TestBTree.testInsertionCorrectness( tree );
+        new ParallelTeam().execute( new ParallelRegion()
+        {
+            public void run() throws Exception
+            {
+                execute(0, 100-1, new IntegerForLoop()
+                {
+                    public void run( int first, int last )
+                    {
+                        for(int j = first; j <= last; ++j)
+                        {
+                            bTree.put( j , j*10 );
+                        }
+                    }
+                });
+            }
+        });
+
+        for( int i = 0; i < 100; i++ )
+        {
+            System.out.println( i + ": " + (i*10) );
+            System.out.println( tree );
+            if( tree.get( i ) != i*10 )
+            {
+                throw new RuntimeException( "tree.get( " + i + " ) should be: " +
+                    i*10 + " , but it's " + tree.get( i ) + " !" );
+            }
+        }
     }
 
     public static long stressTestInsertion() throws Exception
@@ -74,7 +100,7 @@ public class TestBTreeSMP
                 {
                     public void run( int first, int last )
                     {
-                        for(int j = 0; j < 1000; ++j)
+                        for(int j = first; j <= last; ++j)
                         {
                             bTree.put( j , j*10 );
                         }
