@@ -35,6 +35,8 @@ public class BTreeClu
      */
     public static void run(String[] args) throws Exception
     {
+        long startTime = System.currentTimeMillis();
+
         Comm.init(args);
         world = Comm.world();
         rank = world.rank();
@@ -50,13 +52,12 @@ public class BTreeClu
                     for( int i=0; i < 1000; i++ )
                     {
                         put( i, i*10 );
-                        System.out.println( "" + i + ": " + i*10 );
                     }
 
                     for( int i = size-1; i >= 0; i-- )
                     {
                         try{
-                            world.send( i, CharacterBuf.buffer('q'), new CommRequest() );
+                            world.send( i, CharacterBuf.buffer('q') );
                         } catch( IOException ioe )
                         {
                             System.err.println(ioe);
@@ -119,9 +120,14 @@ public class BTreeClu
                                              new Integer(value.get( 0 )) );
                     break;
                 case 'q':
+                    if( rank == 0 )
+                    {
+                        System.out.println(System.currentTimeMillis() - startTime + " msec");
+                    }
                     break;
             }
         }
+
     }
 
     /** {@inheritDoc} */
