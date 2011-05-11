@@ -228,5 +228,6 @@ public class TestBTree
             }
             System.out.print(">>> ");
         }
+        System.out.println();
     }
 }
