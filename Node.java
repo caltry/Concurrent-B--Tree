@@ -10,6 +10,8 @@
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /** 
  * A B-Tree node.
@@ -22,6 +24,7 @@ public abstract class Node<K extends Comparable,V>
     protected K[] keys;
     protected Node<K,V> parent = null;
     protected Node<K,V> next = null;
+    protected Lock lock = null;
 
     /**
      * Creates a node with an intial value and the given parent.
@@ -40,6 +43,7 @@ public abstract class Node<K extends Comparable,V>
         keys = (K[])(Array.newInstance( key.getClass(), numKeysPerNode +  + 1 ));
         keys[0] = key;
         numKeys = 1;
+        lock = new ReentrantLock(); 
     }
 
     /**
@@ -53,6 +57,7 @@ public abstract class Node<K extends Comparable,V>
         this.numKeys = numKeys;
         this.parent = parent;
         this.next = next;
+        lock = new ReentrantLock(); 
     }
 
     /**
@@ -109,5 +114,19 @@ public abstract class Node<K extends Comparable,V>
 
     public K[] getKeys() {
         return Arrays.copyOfRange(keys,0,numKeys);
+    }
+
+    /**
+     * Obtains a lock on this node.
+     */
+    public void lock() {
+        lock.lock();
+    }
+
+    /**
+     * Unlocks this node if called by the Thread owning the lock.
+     */
+    public void unlock() {
+        lock.unlock();
     }
 }
