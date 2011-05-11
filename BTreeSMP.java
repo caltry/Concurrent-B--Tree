@@ -1,5 +1,5 @@
 /*
- * Sequential B*-Tree implementation for the 
+ * Concurrent B*-Tree implementation for the 
  * Concurrent Search Tree Project for
  * Parallel Computing I
  *
@@ -10,7 +10,7 @@
 import java.util.Map;
 import java.lang.reflect.Array;
 
-public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
+public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
 {
     private int size = 0;
 
