@@ -94,16 +94,16 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
                 // FIXME: We currently have a bug where we can put a new node in a parent
                 // whose upper bound will be beyond the upper bound designated by _its_ parent
                     
-                    if( newRight.upperUpper().compareTo(parent.upperUpper()) > 0 )
+                    /*if( newRight.upperUpper().compareTo(parent.upperUpper()) > 0 )
                     {
                         if( parent != root )
                         {
                             parent = (InternalNode<K,V>)parent.parent;
                             continue;
                         }
-                    }
+                    }*/
 
-                    if( parent.addChild( addToParent, newRight ) )
+                    if( parent.addChild( addToParent, newRight ))
                     {
                         break;
                     }

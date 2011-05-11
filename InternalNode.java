@@ -27,9 +27,12 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             this.children[1] = rChild;
         }
 
-    public InternalNode( K[] keys, Node<K,V>[] children, Node<K,V> parent, Node<K,V> next ) {
-        super( keys, parent, next );
-        this.children = (Node<K,V>[]) Arrays.copyOf( (Node<K,V>[]) children, numKeysPerNode + 1 );
+    public InternalNode( K[] keys, Node<K,V>[] children, int numKeys, Node<K,V> parent, Node<K,V> next ) {
+        super( keys, numKeys, parent, next );
+        this.children = (Node<K,V>[]) Arrays.copyOf( (Node<K,V>[]) children, numKeysPerNode + 2 );
+        for( int i = 0; i <= numKeys; ++i ) {
+            children[i].parent = this;
+        }
     }
 
     /**
@@ -115,6 +118,7 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
             keys[j] = keys[j-1];
             children[j+1] = children[j];
         }
+        System.out.println( keys.length );
         keys[i] = key;
         children[i+1] = value;
         //System.out.println( "KEYS: " + Arrays.toString( keys ) );
@@ -125,17 +129,17 @@ class InternalNode<K extends Comparable, V> extends Node<K,V> {
         newNode = new InternalNode<K,V>( 
                 Arrays.copyOfRange( this.keys, keys.length/2 + 1, keys.length ),
                 Arrays.copyOfRange( this.children, (children.length+1)/2, children.length ),
+                this.keys.length/2,
                 this.parent,
                 this.next );
         this.next = newNode;
     
-        /*System.out.println( "MIDDLE: " + keys[keys.length/2] );
+        System.out.println( "MIDDLE: " + keys[keys.length/2] );
         System.out.println( "NEW NODE L: " + Arrays.toString(Arrays.copyOfRange(this.keys, 0, keys.length/2) ) );
-        System.out.println( "NEW NODE R: " + Arrays.toString(newNode.keys) );*/
+        System.out.println( "NEW NODE R: " + Arrays.toString(newNode.keys) );
 
         // "resize" our key array
         this.numKeys = (keys.length)/2;
-        newNode.numKeys = keys.length/2; 
 
         // We want to return the new InternalNode in the union.
         return new Union.Left<InternalNode<K,V>,LeafNode<K,V>>(newNode);

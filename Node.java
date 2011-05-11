@@ -16,7 +16,7 @@ import java.util.Arrays;
  */
 public abstract class Node<K extends Comparable,V>
 {
-	protected static final int numKeysPerNode = 4;
+	protected static final int numKeysPerNode = 2;
 
     protected int numKeys;
     protected K[] keys;
@@ -48,9 +48,9 @@ public abstract class Node<K extends Comparable,V>
      * @param keys The keys in this node.
      * @param parent The parent node.
      */
-    protected Node( K[] keys, Node<K,V> parent, Node<K,V> next ) {
-        this.keys = Arrays.copyOf( keys, numKeysPerNode );
-        numKeys = keys.length;
+    protected Node( K[] keys, int numKeys, Node<K,V> parent, Node<K,V> next ) {
+        this.keys = Arrays.copyOf( keys, numKeysPerNode + 1 );
+        this.numKeys = numKeys;
         this.parent = parent;
         this.next = next;
     }

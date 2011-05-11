@@ -26,8 +26,8 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         children[0] = value;
     }
 
-    private LeafNode( K[] keys, V[] values, Node<K,V> parent, Node<K,V> next ) {
-        super( keys, parent, next );
+    private LeafNode( K[] keys, V[] values, int numKeys, Node<K,V> parent, Node<K,V> next ) {
+        super( keys, numKeys, parent, next );
         children = Arrays.copyOf( values, numKeysPerNode + 2);
     }
 
@@ -99,13 +99,13 @@ class LeafNode<K extends Comparable, V> extends Node<K,V> {
         LeafNode<K,V> newNode = new LeafNode<K,V>( 
                 Arrays.copyOfRange( this.keys, (numKeysPerNode)/2, numKeysPerNode ),
                 Arrays.copyOfRange( this.children, numKeysPerNode/2, numKeysPerNode ),
+                numKeysPerNode/2,
                 this.parent,
                 this.next );
         this.next = newNode;
 
         // Resize our key array
         this.numKeys = numKeysPerNode/2;
-        newNode.numKeys = numKeysPerNode/2;
 
         if( key.compareTo( newNode.lowerBound() ) >= 0 ) {
             newNode.addValue( key, value );
