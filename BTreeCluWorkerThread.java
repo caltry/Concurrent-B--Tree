@@ -27,6 +27,7 @@ public class BTreeCluWorkerThread extends Thread
         this.command = command;
         this.key = key;
         this.value = value;
+        this.response = new IntegerItemBuf();
     }
 
     public void run()

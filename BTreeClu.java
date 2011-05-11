@@ -13,27 +13,27 @@ import edu.rit.mp.*;
 import edu.rit.mp.buf.*;
 import java.io.IOException;
 
-public class BTreeClu extends Thread
+public class BTreeClu
 {
     /** The underlying BTree that all of the nodes will have. */
-    private BTree<Integer, Integer> bTree = null;
+    private static BTree<Integer, Integer> bTree = new BTreeSeq<Integer, Integer>();
 
-    private Comm world;
-    private int rank;
-    private int size;
+    private static Comm world;
+    private static int rank;
+    private static int size;
     
-    private CharacterBuf command;
-    private IntegerBuf key;
-    private IntegerBuf value;
+    private static CharacterBuf command = new CharacterItemBuf();
+    private static IntegerBuf key = new IntegerItemBuf();
+    private static IntegerBuf value = new IntegerItemBuf();
 
-    private volatile int lastNodeUsed = 0;
+    private static volatile int lastNodeUsed = 0;
 
-    private BTreeCluWorkerThread[] slaves;
+    private static BTreeCluWorkerThread[] slaves;
 
     /**
      * Starts running the BTree cluster.
      */
-    public void run(String[] args) throws Exception
+    public static void run(String[] args) throws Exception
     {
         Comm.init(args);
         world = Comm.world();
@@ -47,15 +47,16 @@ public class BTreeClu extends Thread
                 public void run()
                 {
                     // TODO: Generate work here
-                    for( int i=0; i < 10000; i++ )
+                    for( int i=0; i < 1000; i++ )
                     {
                         put( i, i*10 );
+                        System.out.println( "" + i + ": " + i*10 );
                     }
 
                     for( int i = size-1; i >= 0; i-- )
                     {
                         try{
-                            world.send( i, CharacterBuf.buffer('q') );
+                            world.send( i, CharacterBuf.buffer('q'), new CommRequest() );
                         } catch( IOException ioe )
                         {
                             System.err.println(ioe);
@@ -123,67 +124,57 @@ public class BTreeClu extends Thread
         }
     }
 
-    private BTreeClu()
-    {
-        bTree = new BTreeSeq<Integer,Integer>();
-    }
-
     /** {@inheritDoc} */
-    public void clear()
+    public static void clear()
     {
         bTree.clear();
     }
 
     /** {@inheritDoc} */
-    public boolean containsKey( Integer key )
+    public static boolean containsKey( Integer key )
     {
         return bTree.containsKey( key );
     }
 
     /** {@inheritDoc} */
-    public boolean containsValue( Integer value )
+    public static boolean containsValue( Integer value )
     {
         assert(false);
         return false;
     }
 
     /** {@inheritDoc} */
-    public Integer get( Integer key )
+    public static Integer get( Integer key )
     {
         return bTree.get( key );
     }
 
     /** {@inheritDoc} */
-    public boolean isEmpty()
+    public static boolean isEmpty()
     {
         return bTree.isEmpty();
     }
 
     /** {@inheritDoc} */
-    public Integer put( Integer key, Integer value )
+    public static Integer put( Integer key, Integer value )
     {
         return bTree.put( key, value );
     }
 
     /** {@inheritDoc} */
-    public Integer remove( Integer key )
+    public static Integer remove( Integer key )
     {
         return bTree.remove( key );
     }
 
     /** {@inheritDoc} */
-    public int size()
+    public static int size()
     {
         return bTree.size();
     }
 
-    public String toString()
-    {
-        return bTree.toString();
-    }
-
     /** {@inheritDoc} */
-   public Node<Integer,Integer> getRoot() {
+   public static Node<Integer,Integer> getRoot() {
        return bTree.getRoot();
     }
 }
