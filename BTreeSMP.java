@@ -26,8 +26,7 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
     /** {@inheritDoc} */
     public boolean containsKey( K key )
     {
-        assert(false);
-        return false;
+        return get( key ) != null;
     }
 
     /** {@inheritDoc} */
@@ -74,6 +73,9 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
             LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
             oldVal = leaf.getChild(key).right();
                 
+            // we need a lock on leaf
+            leaf.lock();
+
             // can we fit the new value into this node?
             if( !leaf.addValue( key, value ) ) {
                 // We have to split the node
@@ -81,6 +83,7 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
                 Node<K,V> newRight = right;
                 // we need to add the new node to the parent node, we then need to repeat this process.
                 InternalNode<K,V> parent = (InternalNode<K,V>)right.parent;
+                parent.lock();
 
                 // loop until we reach the root node or we are successfully able to add a child node
                 K addToParent = newRight.lowerBound();
@@ -91,6 +94,8 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
                     
                     // update the parent and the right node
                     addToParent = addToParentNew;
+                    parent.parent.lock();
+                    parent.unlock();
                     parent = (InternalNode<K,V>)parent.parent;
                     newRight = parentRight;
                 }
@@ -98,10 +103,15 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
                 // The root has been split, we need to create a new root.
                 if( parent == null ) {
                     Node<K,V> newRoot = new InternalNode<K,V>( root, newRight,addToParent );
+                    newRoot.lock();
                     root.parent = newRoot;
                     newRight.parent = newRoot;
                     root = newRoot;
-                } 
+                    root.unlock();
+                    newRoot.unlock();
+                }
+
+                leaf.unlock();
             }
         } else {    // There isn't a root node yet
             root = new LeafNode<K,V>( key, value );

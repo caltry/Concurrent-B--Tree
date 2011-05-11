@@ -26,8 +26,7 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
     /** {@inheritDoc} */
     public boolean containsKey( K key )
     {
-        assert(false);
-        return false;
+        return get( key ) != null;
     }
 
     /** {@inheritDoc} */
