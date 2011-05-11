@@ -9,6 +9,7 @@
  */
 
 import edu.rit.pj.Comm;
+import edu.rit.pj.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -19,18 +20,21 @@ import java.lang.NumberFormatException;
  */
 public class TestBTreeSMP
 {
-	public static void main(String[] args) throws IOException
+    private static BTree<Integer, Integer> bTree;
+
+	public static void main(String[] args) throws Exception
 	{
         Comm.init(args);
 
 		BTree<Integer, Integer> SmpBTree = new BTreeSMP<Integer, Integer>();
+        bTree = SmpBTree;
 		
         testInsertion( SmpBTree );
         SmpBTree.clear();
         testInsertionCorrectness( SmpBTree );
         SmpBTree.clear();
         System.out.println(SmpBTree.getClass().toString() + " stress test: " +
-            stressTestInsertion( SmpBTree ) + " msec");
+            stressTestInsertion() + " msec");
 		testInternalNodeSplitting();
         
         testInteractive( new BTreeSeq<Integer, Integer>() );
@@ -58,9 +62,28 @@ public class TestBTreeSMP
         TestBTree.testInsertionCorrectness( tree );
     }
 
-    public static long stressTestInsertion(BTree<Integer, Integer> tree)
+    public static long stressTestInsertion() throws Exception
     {
-        return TestBTree.stressTestInsertion( tree );
+        long startTime = System.currentTimeMillis();
+    
+        new ParallelTeam().execute( new ParallelRegion()
+        {
+            public void run() throws Exception
+            {
+                execute(0, 10000-1, new IntegerForLoop()
+                {
+                    public void run( int first, int last )
+                    {
+                        for(int j = 0; j < 1000; ++j)
+                        {
+                            bTree.put( j , j*10 );
+                        }
+                    }
+                });
+            }
+        });
+
+        return System.currentTimeMillis() - startTime;
     }
 	
 	/**
