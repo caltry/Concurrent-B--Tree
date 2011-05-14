@@ -7,6 +7,8 @@
  * Date: April. 12, 2011
  */
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Map;
 import java.lang.reflect.Array;
 import java.util.concurrent.locks.Lock;
@@ -18,9 +20,12 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     private int size = 0;
 
     private Node<K,V> root = null;
+    private Node<K,V> workingRoot = null;
+    private Queue<Pair<K,V>> addedSinceSync = null;
 
     public BTreeSMP() {
         lock = new ReentrantLock();
+        addedSinceSync = (Queue<Pair<K,V>>)(new LinkedList<Pair<K,V>>());
     }
 
     /** {@inheritDoc} */
@@ -28,6 +33,8 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     {
         // We'll let the garbage collector worry about it.
         root = null;
+        workingRoot = null;
+        addedSinceSync.clear();
     }
 
     /** {@inheritDoc} */
@@ -68,9 +75,10 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     /** {@inheritDoc} */
     public V put( K key, V value )
     {
-        lock.lock();
+        workingRoot.lock();
+        addedSinceSync.offer( new Pair<K,V>(key, value) );
         // find the leaf node that would contain this value
-        Node<K,V> currentNode = root;
+        Node<K,V> currentNode = workingRoot;
         while( currentNode instanceof InternalNode ) {
             Node<K,V> newNode = currentNode.getChild(key).left();
             currentNode = newNode;
@@ -109,17 +117,18 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
 
                 // The root has been split, we need to create a new root.
                 if( parent == null ) {
-                    Node<K,V> newRoot = new InternalNode<K,V>( root, newRight,addToParent );
-                    root.parent = newRoot;
+                    Node<K,V> newRoot = new InternalNode<K,V>( workingRoot, newRight,addToParent );
+                    workingRoot.parent = newRoot;
                     newRight.parent = newRoot;
-                    root = newRoot;
+                    workingRoot = newRoot;
                 }
             }
         } else {    // There isn't a root node yet
-            root = new LeafNode<K,V>( key, value );
+            workingRoot = new LeafNode<K,V>( key, value );
         }
 
-        lock.unlock();
+        treeSync();
+        workingRoot.unlock();
         return oldVal;
     }
 
@@ -161,5 +170,18 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     /** {@inheritDoc} */
    public Node<K,V> getRoot() {
        return root;
+    }
+
+   /**
+    * Swaps the working tree with the main tree and then synchronizes the trees.
+    */
+    public void treeSync() {
+        Node<K,V> tmp = root;
+        root = workingRoot;
+        workingRoot = tmp;
+        while( addedSinceSync.size() > 0 ) {
+            Pair<K,V> p = addedSinceSync.remove();
+            put( p.left(), p.right() );
+        }
     }
 }

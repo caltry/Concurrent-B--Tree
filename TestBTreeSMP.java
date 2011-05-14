@@ -21,6 +21,7 @@ import java.lang.NumberFormatException;
 public class TestBTreeSMP
 {
     private static BTree<Integer, Integer> bTree;
+    private static int numElements = 1000000;
 
 	public static void main(String[] args) throws Exception
 	{
@@ -33,6 +34,12 @@ public class TestBTreeSMP
         //SmpBTree.clear();
         //testInsertionCorrectness( SmpBTree );
         //SmpBTree.clear();
+        if( args.length >= 1 ) {
+            numElements = Integer.parseInt( args[0] );
+        }
+        if( args.length == 2 ) {
+           Node.numKeysPerNode = Integer.parseInt( args[1] ); 
+        }
         System.out.println(SmpBTree.getClass().toString() + " Insertion stress test: " +
             stressTestInsertion() + " msec");
         System.out.println(SmpBTree.getClass().toString() + " Lookup stress test: " +
@@ -99,7 +106,7 @@ public class TestBTreeSMP
         {
             public void run() throws Exception
             {
-                execute(0,  1000000-1, new IntegerForLoop()
+                execute(0, numElements-1, new IntegerForLoop()
                 {
                     public void run( int first, int last )
                     {
@@ -123,7 +130,7 @@ public class TestBTreeSMP
 
             public void run() throws Exception
             {
-                execute( 0,  1000000-1, new IntegerForLoop() {
+                execute( 0, numElements-1, new IntegerForLoop() {
                     public void run( int first, int last ) {
                         long start = System.currentTimeMillis();
                         int incorrectLookups = 0;
