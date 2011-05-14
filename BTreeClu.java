@@ -7,11 +7,12 @@
  * Date: April. 12, 2011
  */
 
-import java.lang.reflect.Array;
-import edu.rit.pj.*;
 import edu.rit.mp.*;
 import edu.rit.mp.buf.*;
+import edu.rit.pj.*;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * A cluster implementation of a B+-Tree.
@@ -35,11 +36,33 @@ public class BTreeClu
 
     /** Used to keep track of which node was last assigned work. */
     private static volatile int lastNodeUsed = 0;
-
+    
+    /** Threads responsible for making sure that messages get transmitted
+     *  properly to the backend node. */
     private static BTreeCluWorkerThread[] slaves;
+
+    /** Communication status indicators for each of the backend workers. */
+    private static CommRequest[] workers;
+    
+    /** A queue of the operations that need to be performed on the tree. */
+    private static LinkedBlockingQueue<BTreeOperation<Integer,Integer>> opQ = null;
+
+    /** Used to determine if the load generator should keep working. */
+    private static boolean running = true;
 
     /** Command-line arguments. */
     private static String[] arguments;
+
+    /**
+     * Set the operation queue that will be used to issue commands with.
+     */
+    public static void setOperationQueue( LinkedBlockingQueue<BTreeOperation<Integer, Integer>> Q )
+    {
+        if( rank == 0 )
+        {
+            opQ = Q;
+        }
+    }
 
     /**
      * Starts running the BTree cluster.
@@ -53,17 +76,24 @@ public class BTreeClu
         rank = world.rank();
         size = world.size();
         arguments = args;
-
+/*
         if( size < 2 )
         {
             System.err.println("You must use at least 2 nodes.");
             return;
         }
-        
+ */       
         if( rank == 0 )
         {
             slaves = new BTreeCluWorkerThread[size];
+            workers = new CommRequest[size];
+            if( opQ == null )
+            {
+                opQ = new LinkedBlockingQueue<BTreeOperation<Integer,Integer>>();
+            }
+
             new Thread("Load generator"){
+
                 public void run()
                 {
                     int maxIter = 1000;
@@ -81,10 +111,43 @@ public class BTreeClu
                     {
                         put( i, i*10 );
                     }
+                    
+                    try{
+                        opQ.put( new BTreeOperation<Integer,Integer>( 'q' ) ); 
+                    } catch( InterruptedException ie )
+                    {
+                        terminate();
+                    }
 
+                    while( running || !opQ.isEmpty() )
+                    {
+                        try{
+                            BTreeOperation<Integer, Integer> nextOp = opQ.take();
+                            if( running )
+                            {
+                                if( nextOp.operation == 'q' )
+                                {
+                                    terminate();
+                                }
+                                else
+                                {
+                                    dispatch( world, lastNodeUsed, nextOp );
+                                    lastNodeUsed = (lastNodeUsed + 1) % size;
+                                    System.out.println( nextOp.key );
+                                }
+                            }
+                        } catch( InterruptedException ie )
+                        {
+                            // Quit
+                            System.err.println("exiting");
+                        }
+                    }
+                    
+                    // Tell all of the workers to shut down -- there's no more work.
                     for( int i = size-1; i >= 0; i-- )
                     {
                         try{
+                            System.out.println("Telling " + i + " to quit" );
                             world.send( i, CharacterBuf.buffer('q') );
                         } catch( IOException ioe )
                         {
@@ -93,38 +156,38 @@ public class BTreeClu
                     }
                 }
 
-                private int put( int key, int value )
+                private BTreeCluWorkerThread
+                dispatch( Comm world, int workerNode, BTreeOperation op )
                 {
-                    try{
-                        slaves[1] = new BTreeCluWorkerThread( world,
-                                                              1,
-                                                              'p',
-                                                              key,
-                                                              value );
-                        slaves[1].start();
-                        slaves[1].join();
-                    } catch( InterruptedException ie )
-                    {
-                        System.out.println(ie);
-                    }
-                    return slaves[1].response.get( 0 );
+                    BTreeCluWorkerThread thread =
+                        new BTreeCluWorkerThread( world,
+                                                  workerNode,
+                                                  op );
+                    thread.start();
+                    return thread;
                 }
 
-                private int get( int key )
+                private void put( int key, int value )
                 {
                     try{
-                        slaves[1] = new BTreeCluWorkerThread( world,
-                                                              1,
-                                                              'g',
-                                                              key,
-                                                              0 );
-                        slaves[1].start();
-                        slaves[1].join();
+                        opQ.put( new BTreeOperation<Integer,Integer>( 'p',
+                                                                      key,
+                                                                      value ));
                     } catch( InterruptedException ie )
                     {
                         System.out.println(ie);
                     }
-                    return slaves[1].response.get( 0 );
+                }
+
+                private void get( int key )
+                {
+                    try{
+                        opQ.put( new BTreeOperation<Integer, Integer>( 'g',
+                                                                       key ));
+                    } catch( InterruptedException ie )
+                    {
+                        System.out.println(ie);
+                    }
                 }
             }.start();
         }
@@ -135,6 +198,7 @@ public class BTreeClu
         {
             Integer got = null;
             world.receive(0, command);
+            System.out.println( rank + " got " + command.get(0) );
             switch( command.get(0) )
             {
                 case 'g':
@@ -148,14 +212,10 @@ public class BTreeClu
                                              new Integer(value.get( 0 )) );
                     break;
                 case 'q':
-                    if( rank == 0 )
-                    {
-                        System.out.println(System.currentTimeMillis() - startTime + " msec");
-                    }
-                    break;
+                    System.out.println( rank + " says goodbye" );
+                    return;
             }
         }
-
     }
 
     /** {@inheritDoc} */
@@ -208,7 +268,15 @@ public class BTreeClu
     }
 
     /** {@inheritDoc} */
-   public static Node<Integer,Integer> getRoot() {
-       return bTree.getRoot();
+    public static Node<Integer,Integer> getRoot() {
+        return bTree.getRoot();
+    }
+
+    /** 
+     * Terminate the main thread of execution.
+     */
+    public static void terminate()
+    {
+        running = false;
     }
 }

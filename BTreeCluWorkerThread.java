@@ -11,6 +11,10 @@ import edu.rit.pj.Comm;
 import edu.rit.mp.*;
 import edu.rit.mp.buf.*;
 
+/**
+ * Thread responsible for sending data to a backend node, without blocking
+ * the main thread.
+ */
 public class BTreeCluWorkerThread extends Thread
 {
     Comm world;
@@ -19,15 +23,17 @@ public class BTreeCluWorkerThread extends Thread
     Integer key;
     Integer value;
     IntegerBuf response;
+    BTreeOperation<Integer, Integer> op;
     
-    BTreeCluWorkerThread( Comm world, int rank, char command, Integer key, Integer value )
+    BTreeCluWorkerThread( Comm world, int rank, BTreeOperation<Integer, Integer> operation )
     {
-        this.world= world;
+        this.world = world;
         this.rank = rank;
-        this.command = command;
-        this.key = key;
-        this.value = value;
+        this.command = operation.operation;
+        this.key = operation.key;
+        this.value = operation.value;
         this.response = new IntegerItemBuf();
+        this.op = operation;
     }
 
     public void run()
@@ -46,6 +52,7 @@ public class BTreeCluWorkerThread extends Thread
             }
             response = new IntegerItemBuf();
             world.receive( rank, response );
+            op.putResult( response.get(0) );
         } catch( Exception ex )
         {
             System.err.println(ex);
