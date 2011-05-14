@@ -457,6 +457,71 @@ Subsubsection text here.
 \section{Sequential Implementation}
 
 \section{SMP Implementation}
+\subsection{Searching}
+Our main goal in this area is to allow searching without locking the tree to
+allow for searches to be as parallelizable as possible. This will allow for
+the tree to be heavily used by multiple cores concurrently and confer a
+noticeable performance gain over a sequential program or a tree that uses some
+sort of locking mechanisms for a search.
+
+The only modification made to the sequential search in the SMP application is
+that a lock is checked to see if an insertion is currently being performed 
+(removals, being glorified insertions, are accounted for as well). This is 
+because it is incredibly difficult and inefficient for nodes to check and
+account for nodes changing under them.
+\subsection{Insertion}
+Insertion requires locking of the tree, there was no effective way to lock 
+subtrees in a way that allowed for searches to occur concurrently with
+insertions. Every approach we attempted was met with undefined behavior and
+proved to be ineffective in high-stress situations.
+
+The approach we settled on was a blocking queue approach. When a process wants 
+to insert a value into the tree, the key-value pair is qeueued up and inserted
+into the tree at a later time. The reasons for this approach are threefold:
+\begin{enumerate}
+\item Work will be done by another thread so the thread inserting the value can
+continue work elsewhere.
+\item The insertion thread knows exactly when to lock and unlock the tree
+structure so that a minimal amount of potential searching time is lost.
+\item This approach results in an \emph{observed} speedup due to insertions being
+deferred.
+\end{enumnerate}
+\subsection{Performance}
+\subsubsection{Searching}
+Searching, for the most part, showed great results as concurrent searches
+are massively parallelizable. However due to cache thrashing, the inability to
+align to cache boundaries, and potentially some memory traffic issues, we 
+observed a lower speedup than we expected. It is impossible to align the 
+threads to cache boundaries due to their excessive memory lookups in searching. 
+This is further compounded by the irregular memory usage of the tree caused by
+node splitting that prvents larger trees from taking advantage of spacial 
+locality of the used data (which leads to more cache misses than programs with
+a more conventional behavior).
+
+Despite this, speedups for very stressful loads were observed (8 threads, with
+each performing 125,000 lookups in parallel):
+\begin{center}
+\begin{tabular} { | r | c | c | c |}
+\multicolumn{4}{|c|}{Search performance (1000000 searches)}\\\hline\hline
+K & Time (msec) & Speedup & EDSF \\\hline
+seq & \--- & \--- & \--- \\\hline
+1 & 1749 & \--- & \--- \\\hline
+2 & 823 & \--- & \--- \\\hline
+3 & 808 & \--- & \--- \\\hline
+4 & 681 & \--- & \--- \\\hline
+5 & 710 & \--- & \--- \\\hline
+6 & 724 & \--- & \--- \\\hline
+7 & 623 & \--- & \--- \\\hline
+8 & 479 & \--- & \--- \\\hline
+\end{center}
+\end{tabular}
+\subsubsection{Insertion}
+Insertion shows less favorable results. During a high-stress amount of 
+insertions (e.g. 8 threads rapidly inserting elements) a slowdown is 
+observed due to the blocking nature of Java's \texttt{LinkedBlockingQueue}. But
+luckily this is a rare use-case and in the case of two threads rapidly
+inserting elements a small speedup is observed. This speedup is small enough
+however that it does not warrant a data-table.
 
 \section{Cluster Implementation}
 For the cluster implementation of our B\textsuperscript{+}-Tree, we decided that
@@ -472,7 +537,7 @@ Because all of the back-end nodes are the same, searching through the tree is
 fast. The master node delegates work out evenly between all of the nodes,
 because searching has no side effects.
 
-\subsection{Inserting}
+\subsection{Insertion}
 To insert into the tree, we need to insert into {\em all} of the trees in our
 backend nodes. We can accomplish this by putting the insert into the task queue
 \--- when the master gets to that task, it adds the insertion to all of the nodes.
