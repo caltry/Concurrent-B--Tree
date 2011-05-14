@@ -13,23 +13,32 @@ import edu.rit.mp.*;
 import edu.rit.mp.buf.*;
 import java.io.IOException;
 
+/**
+ * A cluster implementation of a B+-Tree.
+ */
 public class BTreeClu
 {
     /** The underlying BTree that all of the nodes will have. */
     private static BTree<Integer, Integer> bTree = new BTreeSeq<Integer, Integer>();
-
+    
+    /* Environmental data */
     private static Comm world;
     private static int rank;
     private static int size;
     
+    /** Used for sending commands to the worker nodes. */
     private static CharacterBuf command = new CharacterItemBuf();
+    /** Used for sending keys to worker nodes. */
     private static IntegerBuf key = new IntegerItemBuf();
+    /** Used for sending values to worker nodes. */
     private static IntegerBuf value = new IntegerItemBuf();
 
+    /** Used to keep track of which node was last assigned work. */
     private static volatile int lastNodeUsed = 0;
 
     private static BTreeCluWorkerThread[] slaves;
 
+    /** Command-line arguments. */
     private static String[] arguments;
 
     /**
@@ -68,7 +77,6 @@ public class BTreeClu
                         }
                     }
 
-                    // TODO: Generate work here
                     for( int i=0; i < maxIter; i++ )
                     {
                         put( i, i*10 );
