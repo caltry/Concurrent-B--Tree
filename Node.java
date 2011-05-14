@@ -20,7 +20,7 @@ public abstract class Node<K extends Comparable,V>
 {
     public static int locks = 0;
     public static int unlocks = 0;
-	protected static final int numKeysPerNode = 6;
+	protected static int numKeysPerNode = 6;
 
     protected int numKeys;
     protected K[] keys;
