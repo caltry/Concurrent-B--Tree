@@ -46,4 +46,8 @@ public class Pair<L,R> {
     public R right() {
         return right;
     }
+
+    public String toString() {
+        return "(" + left + ", " + right + ")";
+    }
 }

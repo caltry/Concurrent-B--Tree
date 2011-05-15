@@ -8,24 +8,61 @@
  */
 
 import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.Map;
 import java.lang.reflect.Array;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
+public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
 {
-    private Lock lock;
     private int size = 0;
+    ReentrantLock lock;
 
     private Node<K,V> root = null;
-    private Node<K,V> workingRoot = null;
-    private Queue<Pair<K,V>> addedSinceSync = null;
+    private BlockingQueue<Pair<K,V>> addQueue = null;
+    private boolean searchable = true;
+    private boolean terminate = false;
+    private Thread putHandler = null;
 
     public BTreeSMP() {
+        addQueue = (BlockingQueue<Pair<K,V>>)new LinkedBlockingQueue<Pair<K,V>>();
+        putHandler = new Thread( this );
+        putHandler.start();
         lock = new ReentrantLock();
-        addedSinceSync = (Queue<Pair<K,V>>)(new LinkedList<Pair<K,V>>());
+    }
+
+    public void run() {
+        while( !terminate ) {
+            try {
+                Pair<K,V> p = addQueue.poll(100, TimeUnit.MILLISECONDS );
+                // the use of a boolean here relies on the overservation that any
+                // parallel access of the tree will take longer than a simple
+                // search because a search must first be performed.
+
+                // while not inherently threadsafe, we should not see odd behavior
+                if( p != null ) {
+                    lock.lock();
+                    actualPut( p.left(), p.right() );
+                    while( !addQueue.isEmpty() ) {
+                        p = addQueue.remove();
+                        actualPut(p.left(), p.right());
+                    }
+                    lock.unlock();
+                } 
+            } catch( java.lang.InterruptedException e) {
+                e.printStackTrace();
+                terminate = true;
+            }
+        }
+
+        // we want waitng threads to exit out of their wait and complete
+        searchable = true;
+    }
+
+    public void terminate() {
+        terminate = true;
     }
 
     /** {@inheritDoc} */
@@ -33,8 +70,6 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     {
         // We'll let the garbage collector worry about it.
         root = null;
-        workingRoot = null;
-        addedSinceSync.clear();
     }
 
     /** {@inheritDoc} */
@@ -50,9 +85,13 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
         return false;
     }
 
+    public boolean isSearchable() {
+        return searchable;
+    }
     /** {@inheritDoc} */
     public V get( K key )
     {
+        while( lock.isLocked() );
         Node<K,V> currentNode = root;
 
         while( currentNode instanceof InternalNode )
@@ -75,21 +114,23 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     /** {@inheritDoc} */
     public V put( K key, V value )
     {
-        workingRoot.lock();
-        addedSinceSync.offer( new Pair<K,V>(key, value) );
+        V old = get( key );
+        addQueue.offer( new Pair<K,V>(key, value) );
+        return old;
+    }
+
+    private void actualPut( K key, V value ) {
         // find the leaf node that would contain this value
-        Node<K,V> currentNode = workingRoot;
+        Node<K,V> currentNode = root;
         while( currentNode instanceof InternalNode ) {
             Node<K,V> newNode = currentNode.getChild(key).left();
             currentNode = newNode;
         }
 
-        V oldVal = null;
         LeafNode<K,V> leaf = (LeafNode<K,V>)currentNode; 
         if( currentNode != null ) {
             // save the current node
-            oldVal = leaf.getChild(key).right();
-                
+
             // can we fit the new value into this node?
             if( !leaf.addValue( key, value ) ) {
                 // We have to split the node
@@ -107,7 +148,7 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
                     // split the parent node
                     InternalNode<K,V> parentRight =  (InternalNode<K,V>)parent.split(addToParent, newRight).left();
                     K addToParentNew = parent.getMiddleKey();
-                    
+
                     // update the parent and the right node
                     addToParent = addToParentNew;
                     InternalNode<K,V> newParent = (InternalNode<K,V>)parent.parent;
@@ -117,19 +158,15 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
 
                 // The root has been split, we need to create a new root.
                 if( parent == null ) {
-                    Node<K,V> newRoot = new InternalNode<K,V>( workingRoot, newRight,addToParent );
-                    workingRoot.parent = newRoot;
+                    Node<K,V> newRoot = new InternalNode<K,V>( root, newRight,addToParent );
+                    root.parent = newRoot;
                     newRight.parent = newRoot;
-                    workingRoot = newRoot;
+                    root = newRoot;
                 }
             }
         } else {    // There isn't a root node yet
-            workingRoot = new LeafNode<K,V>( key, value );
+            root = new LeafNode<K,V>( key, value );
         }
-
-        treeSync();
-        workingRoot.unlock();
-        return oldVal;
     }
 
     /** {@inheritDoc} */
@@ -168,20 +205,7 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>
     }
 
     /** {@inheritDoc} */
-   public Node<K,V> getRoot() {
-       return root;
-    }
-
-   /**
-    * Swaps the working tree with the main tree and then synchronizes the trees.
-    */
-    public void treeSync() {
-        Node<K,V> tmp = root;
-        root = workingRoot;
-        workingRoot = tmp;
-        while( addedSinceSync.size() > 0 ) {
-            Pair<K,V> p = addedSinceSync.remove();
-            put( p.left(), p.right() );
-        }
+    public Node<K,V> getRoot() {
+        return root;
     }
 }

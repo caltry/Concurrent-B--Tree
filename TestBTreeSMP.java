@@ -119,6 +119,7 @@ public class TestBTreeSMP
             }
         });
 
+        // lets be fair and wait for insertions to complete:
         return System.currentTimeMillis() - startTime;
     }
 
@@ -137,9 +138,9 @@ public class TestBTreeSMP
                         int i = first;
                         while( first <= last ) {
                             Integer j = bTree.get(first);
-                            /*if( j == null || j != 10*first ) {
+                            if( j == null || j != 10*first ) {
                                 ++incorrectLookups;
-                            }*/
+                            }
                             ++first;
                         }
                         if( incorrectLookups != 0 ) {
