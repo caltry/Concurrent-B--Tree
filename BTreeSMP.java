@@ -22,7 +22,6 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
 
     private Node<K,V> root = null;
     private BlockingQueue<Pair<K,V>> addQueue = null;
-    private boolean searchable = true;
     private boolean terminate = false;
     private Thread putHandler = null;
 
@@ -56,9 +55,11 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
                 terminate = true;
             }
         }
+        if( !isSearchable() ) {
+            lock.unlock();
+        }
 
         // we want waitng threads to exit out of their wait and complete
-        searchable = true;
     }
 
     public void terminate() {
@@ -86,12 +87,12 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
     }
 
     public boolean isSearchable() {
-        return searchable;
+        return !lock.isLocked();
     }
     /** {@inheritDoc} */
     public V get( K key )
     {
-        while( lock.isLocked() );
+        while( !isSearchable() );
         Node<K,V> currentNode = root;
 
         while( currentNode instanceof InternalNode )

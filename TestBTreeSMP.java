@@ -44,6 +44,7 @@ public class TestBTreeSMP
             stressTestInsertion() + " msec");
         System.out.println(SmpBTree.getClass().toString() + " Lookup stress test: " +
             stressTestLookup() + " msec");
+        ((BTreeSMP)bTree).terminate();
 		//testInternalNodeSplitting();
         
         //testInteractive( new BTreeSeq<Integer, Integer>() );
@@ -119,7 +120,6 @@ public class TestBTreeSMP
             }
         });
 
-        // lets be fair and wait for insertions to complete:
         return System.currentTimeMillis() - startTime;
     }
 
