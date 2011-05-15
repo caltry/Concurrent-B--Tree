@@ -131,6 +131,11 @@ public class BTreeSeq<K extends Comparable,V> implements BTree<K,V>
         return this.size;
     }
 
+    /**
+     * Obtains a(n admittedly hard to read) String representation of the BTree.
+     *
+     * @return A String representation of the tree.
+     */
     public String toString()
     {
         if( root != null )

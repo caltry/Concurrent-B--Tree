@@ -59,6 +59,14 @@ public class Union<A,B> {
             return myA; 
         }
 
+        /**
+         * Obtains a String representation of the object held by the Union.
+         *
+         * @return A String representation of the object held by the Union.
+         */
+        public String toString() {
+            return myA.toString();
+        }
     }
 
     /**
@@ -83,6 +91,15 @@ public class Union<A,B> {
          */
         public B right() {
             return myB;
+        }
+
+        /**
+         * Returns a string representation of the object held by the Union.
+         *
+         * @return A string representation of the object held by the Union.
+         */
+        public String toString() {
+            return myB.toString();
         }
     }
 }

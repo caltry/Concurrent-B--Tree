@@ -25,6 +25,9 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
     private boolean terminate = false;
     private Thread putHandler = null;
 
+    /**
+     * Constructs a new SMP BTree.
+     */
     public BTreeSMP() {
         addQueue = (BlockingQueue<Pair<K,V>>)new LinkedBlockingQueue<Pair<K,V>>();
         putHandler = new Thread( this );
@@ -32,6 +35,19 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
         lock = new ReentrantLock();
     }
 
+    /**
+     * This method acts as a master-type entity and coordinates insertions into
+     * the tree. This allows a process to quickly insert a value into the tree
+     * then resume work before it is even inserted.
+     *
+     * The problem with this however is that elements recently inserted into
+     * the tree may not necessarily be there immediately afterwards for access.
+     *
+     * This turns out to not be a huge issue because a thread inserting an
+     * element into the tree will not be taking it from the tree immediately
+     * afterwards AND most insertions will occur immediately anyway unless if
+     * the put queue is getting blasted with requests.
+     */
     public void run() {
         while( !terminate ) {
             try {
@@ -51,6 +67,7 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
                     lock.unlock();
                 } 
             } catch( java.lang.InterruptedException e) {
+                // the thread shouldn't be interrupted
                 e.printStackTrace();
                 terminate = true;
             }
@@ -58,7 +75,6 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
         if( !isSearchable() ) {
             lock.unlock();
         }
-
         // we want waitng threads to exit out of their wait and complete
     }
 
@@ -120,7 +136,13 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
         return old;
     }
 
-    private void actualPut( K key, V value ) {
+    /**
+     * The put method used by the master thread to actually perform insertions.
+     *
+     * @param key The key of the value to insert.
+     * @param value The value of the key to insert.
+     */
+    protected void actualPut( K key, V value ) {
         // find the leaf node that would contain this value
         Node<K,V> currentNode = root;
         while( currentNode instanceof InternalNode ) {
@@ -193,6 +215,11 @@ public class BTreeSMP<K extends Comparable,V> implements BTree<K,V>, Runnable
         return this.size;
     }
 
+    /**
+     * Obtains a(n admittedly hard to read) String representation of the BTree.
+     *
+     * @return A String representation of the tree.
+     */
     public String toString()
     {
         if( root != null )
