@@ -352,28 +352,22 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Bare Demo of IEEEtran.cls for Conferences}
+\title{Parallel Computing Project: Concurrent B\textsuperscript{+}-Tree}
 
 
 % author names and affiliations
 % use a multiple column layout for up to three different
 % affiliations
-\author{\IEEEauthorblockN{Michael Shell}
-\IEEEauthorblockA{School of Electrical and\\Computer Engineering\\
-Georgia Institute of Technology\\
-Atlanta, Georgia 30332--0250\\
-Email: http://www.michaelshell.org/contact.html}
+\author{\IEEEauthorblockN{David Larsen}
+\IEEEauthorblockA{dcl9934@cs.rit.edu\\
+Department of Computer Science\\
+Rochester Institute of Technology}
 \and
-\IEEEauthorblockN{Homer Simpson}
-\IEEEauthorblockA{Twentieth Century Fox\\
-Springfield, USA\\
-Email: homer@thesimpsons.com}
-\and
-\IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
-\IEEEauthorblockA{Starfleet Academy\\
-San Francisco, California 96678-2391\\
-Telephone: (800) 555--1212\\
-Fax: (888) 555--1212}}
+\IEEEauthorblockN{Ben Mayes}
+\IEEEauthorblockA{bdm8233@cs.rit.edu\\
+Department of Computer Science\\
+Rochester Institute of Technology}
+}
 
 % conference papers do not typically use \thanks and this command
 % is locked out in conference mode. If really needed, such as for
@@ -412,7 +406,12 @@ Fax: (888) 555--1212}}
 
 \begin{abstract}
 %\boldmath
-The abstract goes here.
+Mapping data strucures are a critical part of many applications. As multi-processor
+environments become more popular, programs have responded by implementing
+more concurrency to take advantage of the extra processing power. Because maps
+play a large role in many of these applications, it's important to have a 
+mapping data structure that supports concurrent operations on it, without
+locking the entire structure.
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
 % This preserves the distinction between vectors and scalars. However,
@@ -440,16 +439,12 @@ The abstract goes here.
 
 \section{Introduction}
 % no \IEEEPARstart
-This demo file is intended to serve as a ``starter file''
-for IEEE conference papers produced under \LaTeX\ using
-IEEEtran.cls version 1.7 and later.
-% You must have at least 2 lines in the paragraph with the drop letter
-% (should never be an issue)
-I wish you the best of success.
-
-\hfill mds
- 
-\hfill January 11, 2007
+We implemented a concurrent B\textsuperscript{+}-Tree to see how feasible a
+concurrent mapping data strucure, with minimum locking, would work.
+B\textsuperscript{+}-Trees are commonly used in database applications, where
+several clients could be requesting reads and writes at the same time. In this
+application, having a concurrent B\textsuperscript{+}-Tree that minimizes
+locking could have a very significant impact on performance.
 
 \subsection{Subsection Heading Here}
 Subsection text here.
@@ -458,6 +453,56 @@ Subsection text here.
 \subsubsection{Subsubsection Heading Here}
 Subsubsection text here.
 
+
+\section{Sequential Implementation}
+
+\section{SMP Implementation}
+
+\section{Cluster Implementation}
+For the cluster implementation of our B\textsuperscript{+}-Tree, we decided that
+the message passing overhead from insertion operations that required cascading
+splits in the tree would be too great to warrant splitting the tree across
+multiple backend nodes. To get a faster implementeation, we decided to cut out
+the movement of subtrees between nodes by making all of the nodes mirrors of
+each-other. This way, each node has the exact same tree and any re-balancing as
+a result of a split would only happen local to each node.
+
+\subsection{Searching}
+Because all of the back-end nodes are the same, searching through the tree is
+fast. The master node delegates work out evenly between all of the nodes,
+because searching has no side effects.
+
+\subsection{Inserting}
+To insert into the tree, we need to insert into {\em all} of the trees in our
+backend nodes. We can accomplish this by putting the insert into the task queue
+\--- when the master gets to that task, it adds the insertion to all of the nodes.
+
+\subsection{Task Queue}
+The master node has a queue of all of the operations pending for the tree.
+
+\subsection{Performance}
+We expected to see nice speedups for searching on the cluster, as with our SMP
+implementation.
+\begin{center}
+\begin{tabular}{ | r | c | c | c | }
+\hline
+\multicolumn{4}{|c|}{Search performance (1000 searches)}\\\hline\hline
+K & Time (msec) & Speedup & EDSF \\\hline
+seq & \--- & \--- & \--- \\\hline
+1&6246 & \--- & \--- \\\hline
+2&2876 & \--- & \--- \\\hline
+3&2777 & \--- & \--- \\\hline
+4&3422 & \--- & \--- \\\hline
+5&2870 & \--- & \--- \\\hline
+6&3386 & \--- & \--- \\\hline
+7&3224 & \--- & \--- \\\hline
+8&2677 & \--- & \--- \\\hline
+\end{tabular}
+\end{center}
+The performance curve roughly matches our expections: There's a lot of overhead
+involved with managing the task queue which falls on the root node, as seen by
+the performance of a 1 node cluster that does all of the the queue management
+{\em and} tree operations.
 
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
