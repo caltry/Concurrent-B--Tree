@@ -568,8 +568,14 @@ queries to nodes that have already performed the insertion so we can still have
 some concurrency, even when doing insertions.
 
 \subsection{Performance}
-We expected to see nice speedups for searching on the cluster, as with our SMP
-implementation.
+We expected to see a nice performance curve as with our SMP implementation of the
+B\textsuperscript{+}Tree. We knew starting off that we'd have a lot of overhead
+from managing the pending task queue, distributing out tasks and making sure
+that the results were sent back to the right requester. The sequential
+implementation ended up being much faster because it didn't have to do any
+message passing or queue management. The scale on the table was modified to give
+a closer look at the performance characteristics between differently sized
+clusters.
 \begin{center}
 \begin{tabular}{ | r | c | c | c | c | }
 \hline
@@ -586,10 +592,10 @@ seq & 25 & \--- & \--- & \--- \\\hline
 8&2677 & 0.934 & 0.117 & 1.081 \\\hline
 \end{tabular}
 \end{center}
-The performance curve roughly matches our expectations: There's a lot of overhead
-involved with managing the task queue which falls on the root node, as seen by
-the performance of a 1 node cluster that does all of the queue management {\em
-and} tree operations.
+The performance curve for the cluster runtimes roughly matches our expectations:
+There's a lot of overhead involved with managing the task queue which falls on
+the root node, as seen by the performance of a 1 node cluster that does all of
+the queue management {\em and} tree operations.
 
 The cluster implementation was significantly slower than the sequential
 implementation. The overhead from managing the task queue and properly
