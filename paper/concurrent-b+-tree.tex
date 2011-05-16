@@ -485,7 +485,7 @@ continue work elsewhere.
 structure so that a minimal amount of potential searching time is lost.
 \item This approach results in an \emph{observed} speedup due to insertions being
 deferred.
-\end{enumnerate}
+\end{enumerate}
 \subsection{Performance}
 \subsubsection{Searching}
 Searching, for the most part, showed great results as concurrent searches
@@ -494,34 +494,35 @@ align to cache boundaries, and potentially some memory traffic issues, we
 observed a lower speedup than we expected. It is impossible to align the 
 threads to cache boundaries due to their excessive memory lookups in searching. 
 This is further compounded by the irregular memory usage of the tree caused by
-node splitting that prvents larger trees from taking advantage of spacial 
+node splitting that prvents larger trees from taking advantage of spatial 
 locality of the used data (which leads to more cache misses than programs with
 a more conventional behavior).
 
-Despite this, speedups for very stressful loads were observed (8 threads, with
-each performing 125,000 lookups in parallel):
+Despite this, speedups for very stressful loads were observed (eight threads,
+each performing 125,000 lookups):
 \begin{center}
-\begin{tabular} { | r | c | c | c |}
-\multicolumn{4}{|c|}{Search performance (1000000 searches)}\\\hline\hline
-K & Time (msec) & Speedup & EDSF \\\hline
-seq & \--- & \--- & \--- \\\hline
-1 & 1749 & \--- & \--- \\\hline
-2 & 823 & \--- & \--- \\\hline
-3 & 808 & \--- & \--- \\\hline
-4 & 681 & \--- & \--- \\\hline
-5 & 710 & \--- & \--- \\\hline
-6 & 724 & \--- & \--- \\\hline
-7 & 623 & \--- & \--- \\\hline
-8 & 479 & \--- & \--- \\\hline
-\end{center}
+\begin{tabular} { | r | c | c | c | c |}
+\hline
+\multicolumn{5}{|c|}{Search performance (1000000 searches), nodes of size 100}\\\hline\hline
+K & Time (msec) & Speedup & Eff & EDSF \\\hline
+seq & 1756 & n/a & n/a & n/a \\\hline
+1 & 1749 & 1   & 1  & n/a \\\hline
+2 & 823 & 2.13 & 1.07  & -0.06 \\\hline
+3 & 808 & 2.17 & 0.72 & 0.19 \\\hline
+4 & 681 & 2.57 & 0.64 & 0.18 \\\hline
+5 & 710 & 2.47 & 0.49 & 0.26 \\\hline
+6 & 724 & 2.42 & 0.40 & 0.29 \\\hline
+7 & 623 & 2.81 & 0.40 & 0.25 \\\hline
+8 & 479 & 3.67 & 0.46 & 0.17 \\\hline
 \end{tabular}
+\end{center}
 \subsubsection{Insertion}
 Insertion shows less favorable results. During a high-stress amount of 
-insertions (e.g. 8 threads rapidly inserting elements) a slowdown is 
-observed due to the blocking nature of Java's \texttt{LinkedBlockingQueue}. But
-luckily this is a rare use-case and in the case of two threads rapidly
-inserting elements a small speedup is observed. This speedup is small enough
-however that it does not warrant a data-table.
+insertions (e.g. eight threads rapidly inserting elements) a slowdown is 
+observed due to the blocking nature of Java's \texttt{LinkedBlockingQueue<E>}. But
+luckily this is a rare use-case and in the more reasonable case of two threads 
+rapidly inserting elements a small speedup is observed. This speedup is small 
+enough that it does not warrant a data-table.
 
 \section{Cluster Implementation}
 For the cluster implementation of our B\textsuperscript{+}-Tree, we decided that
@@ -654,8 +655,18 @@ the performance of a 1 node cluster that does all of the the queue management
 
 
 \section{Conclusion}
-The conclusion goes here.
-
+Our concurrent B\textsuperscript{+}Tree did not perform as well as we expected.
+With that being said, concurrent data structures are hard to create. Not only
+do the programmers wish to ensure the integrity of the contents of the data 
+structure over the course of its lifetime by observing and accounting for all
+possible race conditions (and do so without adding additional ones), but also
+create an efficient implementation with a minimal amount of overhead.
+    Additionally, implementing the sequential B\textsuperscript{+}Tree proved
+to be a major undertaking itself because neither of us ever actually created
+or directly worked with one before this project. The most peculiar part of
+these trees is that data is stored only at the nodes which necessitates that
+Leaf and Internal nodes be treated different and have different edge-cases
+accounted for.
 
 
 

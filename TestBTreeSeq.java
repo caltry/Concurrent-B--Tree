@@ -19,36 +19,27 @@ import java.lang.NumberFormatException;
  */
 public class TestBTreeSeq
 {
-	public static void main(String[] args) throws IOException
-	{
+    public static BTree<Integer, Integer> tree;
+    private static int numElements = 1000000;
+
+    public static void main(String[] args) throws IOException
+    {
         Comm.init(args);
+        if( args.length >= 1 ) {
+            numElements = Integer.parseInt( args[0] );
+            if( args.length == 2 ) {
+                Node.numKeysPerNode = Integer.parseInt( args[1] );
+            }
+        }
 
-		BTree<Integer, Integer> seqBTree = new BTreeSeq<Integer, Integer>();
-        Integer k = new Integer(1);
-        Integer v = new Integer(11);
+        BTree<Integer, Integer> seqBTree = new BTreeSeq<Integer, Integer>();
+        tree = seqBTree;
+        System.out.println(seqBTree.getClass().toString() + " Insertion stress test: " +
+                stressTestInsertion() + " msec");
+        System.out.println(seqBTree.getClass().toString() + " Lookup stress test: " +
+                stressTestLookup() + " msec");
+    }
 
-		LeafNode<Integer, Integer> root = new LeafNode<Integer, Integer>(k,v); 
-		root.addValue( new Integer(2), new Integer(11) );
-		root.addValue( new Integer(3), new Integer(11) );
-		root.addValue( new Integer(4), new Integer(11) );
-		root.addValue( new Integer(5), new Integer(11) );
-		root.addValue( new Integer(6), new Integer(11) );
-		root.addValue( new Integer(7), new Integer(11) );
-		root.addValue( new Integer(8), new Integer(11) );
-		
-		if( true )
-		{
-			testInsertion( seqBTree );
-			seqBTree.clear();
-			testInsertionCorrectness( seqBTree );
-			seqBTree.clear();
-			System.out.println(seqBTree.getClass().toString() + " stress test: " +
-				stressTestInsertion( seqBTree ) + " msec");
-		}
-		testInternalNodeSplitting();
-        testInteractive( new BTreeSeq<Integer, Integer>() );
-	}
-    
     /**
      * Test to make sure that the {@link BTree} doesn't crash when we try
      * to insert things into it.
@@ -59,7 +50,7 @@ public class TestBTreeSeq
     {
         TestBTree.testInsertion( tree );
     }
-    
+
     /**
      * like {@link testInsertion}, but tests for correctness.
      *
@@ -68,46 +59,84 @@ public class TestBTreeSeq
      */
     public static void testInsertionCorrectness(BTree<Integer, Integer> tree)
     {
+        System.out.println("\nTesting insertion correctness\n");
+        for( int i = 0; i < numElements; i++ )
+        {
+            System.out.println( i + ": " + (i*10) );
+            tree.put( i, i*10);
+            System.out.println( tree );
+            if( tree.get( i ) != i*10 )
+            {
+                throw new RuntimeException( "tree.get( " + i + " ) should be: " +
+                        i*10 + " , but it's " + tree.get( i ) + " !" );
+            }
+        }
         TestBTree.testInsertionCorrectness( tree );
     }
 
-    public static long stressTestInsertion(BTree<Integer, Integer> tree)
+    public static long stressTestInsertion()
     {
-        return TestBTree.stressTestInsertion( tree );
+        long startTime = System.currentTimeMillis();
+
+        for( int i = 0; i < 1; ++i )
+        {
+            for(int j = 0; j < numElements; ++j)
+            {
+                tree.put( j , j*10 );
+            }
+        }
+
+        return System.currentTimeMillis() - startTime;
     }
-	
-	/**
-	 * Tests to see if internal nodes split properly (but only one level).
-	 */
-	public static void testInternalNodeSplitting()
-	{
-		InternalNode<Integer, Integer> root =
-			new InternalNode<Integer, Integer>( new LeafNode<Integer, Integer>(1, 1*10),
-												new LeafNode<Integer, Integer>(5, 5*10),
-												5);
-		
-		// Loop until we're ready to split our node.
-		int blah = 5;
-		while( root.addChild( ++blah,  new LeafNode<Integer, Integer>( blah, blah * 10) ) );
 
-		System.out.println( "before splitting: " + root );
+    public static long stressTestLookup() {
+        long startTime = System.currentTimeMillis();
+        int incorrectLookups = 0;
+        for( int i = 0; i < numElements; ++i ) {            
+            Integer j = tree.get(i);
+            if( j == null || j != 10*i ) {
+                ++incorrectLookups;
+            }
+        }
+        if( incorrectLookups != 0 ) {
+            System.err.println( "Error: Tree contains " + incorrectLookups + " incorrect values." );
+        }
+        return System.currentTimeMillis() - startTime;
 
-		// Splitting splitting splitting your hair, erm, node.
-		InternalNode<Integer,Integer> rightNode = root.split( new Integer(blah),
-															  new LeafNode<Integer, Integer>(
-															  blah, blah*10) ).left();
-		InternalNode<Integer,Integer> leftNode = root;
+    }
 
-		System.out.println( "left: " + leftNode );
-		System.out.println( "right: "  + rightNode );
+    /**
+     * Tests to see if internal nodes split properly (but only one level).
+     */
+    public static void testInternalNodeSplitting()
+    {
+        InternalNode<Integer, Integer> root =
+            new InternalNode<Integer, Integer>( new LeafNode<Integer, Integer>(1, 1*10),
+                    new LeafNode<Integer, Integer>(5, 5*10),
+                    5);
 
-		root = new InternalNode<Integer, Integer>( leftNode,
-												   rightNode,
-												   leftNode.getMiddleKey() );
+        // Loop until we're ready to split our node.
+        int blah = 5;
+        while( root.addChild( ++blah,  new LeafNode<Integer, Integer>( blah, blah * 10) ) );
 
-		System.out.println( root );
+        System.out.println( "before splitting: " + root );
 
-	}
+        // Splitting splitting splitting your hair, erm, node.
+        InternalNode<Integer,Integer> rightNode = root.split( new Integer(blah),
+                new LeafNode<Integer, Integer>(
+                    blah, blah*10) ).left();
+        InternalNode<Integer,Integer> leftNode = root;
+
+        System.out.println( "left: " + leftNode );
+        System.out.println( "right: "  + rightNode );
+
+        root = new InternalNode<Integer, Integer>( leftNode,
+                rightNode,
+                leftNode.getMiddleKey() );
+
+        System.out.println( root );
+
+    }
 
     /**
      * Runs an interactive test of the BTree.
@@ -116,4 +145,4 @@ public class TestBTreeSeq
     {
         TestBTree.testInteractive( tree );
     }
-}
+    }
