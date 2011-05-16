@@ -76,13 +76,7 @@ public class BTreeClu
         rank = world.rank();
         size = world.size();
         arguments = args;
-/*
-        if( size < 2 )
-        {
-            System.err.println("You must use at least 2 nodes.");
-            return;
-        }
- */       
+        
         if( rank == 0 )
         {
             slaves = new BTreeCluWorkerThread[size];
@@ -133,7 +127,7 @@ public class BTreeClu
                                 {
                                     dispatch( world, lastNodeUsed, nextOp );
                                     lastNodeUsed = (lastNodeUsed + 1) % size;
-                                    System.out.println( nextOp.key );
+//                                    System.out.println( nextOp.key );
                                 }
                             }
                         } catch( InterruptedException ie )
@@ -147,7 +141,6 @@ public class BTreeClu
                     for( int i = size-1; i >= 0; i-- )
                     {
                         try{
-                            System.out.println("Telling " + i + " to quit" );
                             world.send( i, CharacterBuf.buffer('q') );
                         } catch( IOException ioe )
                         {
@@ -198,7 +191,6 @@ public class BTreeClu
         {
             Integer got = null;
             world.receive(0, command);
-            System.out.println( rank + " got " + command.get(0) );
             switch( command.get(0) )
             {
                 case 'g':
@@ -213,6 +205,10 @@ public class BTreeClu
                     break;
                 case 'q':
                     System.out.println( rank + " says goodbye" );
+                    return;
+                default:
+                    System.err.print( rank + " got an un-recognized command: ");
+                    System.err.println( command.get( 0 ) );
                     return;
             }
         }

@@ -8,6 +8,7 @@ public class TestBTreeCLU {
         jobQ = new LinkedBlockingQueue<BTreeOperation<Integer, Integer>>();
         BTreeClu.setOperationQueue( jobQ );
         BTreeClu.run(args);
+        BTreeClu.terminate();
         System.out.println( System.currentTimeMillis() - startTime + " msec");
         System.exit(0);
     }
