@@ -531,7 +531,10 @@ splits in the tree would be too great to warrant splitting the tree across
 multiple backend nodes. To get a faster implementeation, we decided to cut out
 the movement of subtrees between nodes by making all of the nodes mirrors of
 each-other. This way, each node has the exact same tree and any re-balancing as
-a result of a split would only happen local to each node.
+a result of a split would only happen local to each node. This distributed
+mirror approach is often taken when building distributed databases that have a
+heavy search load\footnote{BigTable, for example, is designed so that the
+samedata is always copied across at least 3 nodes.}
 
 \subsection{Searching}
 Because all of the back-end nodes are the same, searching through the tree is
@@ -544,31 +547,50 @@ backend nodes. We can accomplish this by putting the insert into the task queue
 \--- when the master gets to that task, it adds the insertion to all of the nodes.
 
 \subsection{Task Queue}
-The master node has a queue of all of the operations pending for the tree.
+The master node has a queue of all of the operations pending for the tree. The
+approach here was very similar to question 2 of homework 4: We have a thread
+unloading tasks from a central queue and dispatching them out to worker nodes.
+Searching tasks are delegated in a rotating fashion between all of the servers.
+For an insertion, we delegate an insertion task for all of the backend trees.
+Because the master is in control of delegating tasks, it can send out search
+queries to nodes that have already performed the insertion so we can still have
+some concurrency, even when doing insertions.
 
 \subsection{Performance}
 We expected to see nice speedups for searching on the cluster, as with our SMP
 implementation.
 \begin{center}
-\begin{tabular}{ | r | c | c | c | }
+\begin{tabular}{ | r | c | c | c | c | }
 \hline
-\multicolumn{4}{|c|}{Search performance (1000 searches)}\\\hline\hline
-K & Time (msec) & Speedup & EDSF \\\hline
-seq & \--- & \--- & \--- \\\hline
-1&6246 & \--- & \--- \\\hline
-2&2876 & \--- & \--- \\\hline
-3&2777 & \--- & \--- \\\hline
-4&3422 & \--- & \--- \\\hline
-5&2870 & \--- & \--- \\\hline
-6&3386 & \--- & \--- \\\hline
-7&3224 & \--- & \--- \\\hline
-8&2677 & \--- & \--- \\\hline
+\multicolumn{5}{|c|}{Search performance (1000 searches)}\\\hline\hline
+K & Time (msec) & Speedup({\small E}-2) & Eff({\small E}-2) & EDSF({\small E}-2) \\\hline
+seq & 25 & \--- & \--- & \--- \\\hline
+1&6246 & 0.400 & 0.400 & \--- \\\hline
+2&2876 & 0.869 & 0.435 & 1.308 \\\hline
+3&2777 & 0.900 & 0.300 & 1.166 \\\hline
+4&3422 & 0.731 & 0.183 & 1.492 \\\hline
+5&2870 & 0.871 & 0.174 & 1.185 \\\hline
+6&3386 & 0.738 & 0.123 & 1.425 \\\hline
+7&3224 & 0.775 & 0.111 & 1.338 \\\hline
+8&2677 & 0.934 & 0.117 & 1.081 \\\hline
 \end{tabular}
 \end{center}
 The performance curve roughly matches our expections: There's a lot of overhead
 involved with managing the task queue which falls on the root node, as seen by
 the performance of a 1 node cluster that does all of the the queue management
 {\em and} tree operations.
+
+The cluster implemenation was significantly slower than the sequential
+implementation. The overhead from managing the task queue and properly
+delegating tasks out takes a huge hit on performance. The cluster implementation
+didn't scale {\em quite} as well as we had hoped, but it's very hard to match
+the speed when all of the data is stored in main memory. We think that if our
+tree were stored in slower, tertiary memory (such as a hard drive) as many
+B\textsuperscript{+}-trees are\footnote{Databases, the traditional application
+for B\textsuperscript{+}-trees store most of their data on a tertiary storage
+device}. Having a slower local lookup time would have made the message-passing
+overhead worthwhile, because we could have many nodes doing local lookups at the
+same time, which might take much longer than the time to transmit data.
 
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
@@ -668,21 +690,16 @@ these trees is that data is stored only at the nodes which necessitates that
 Leaf and Internal nodes be treated different and have different edge-cases
 accounted for.
 
-
+Though our results were not ideal, they were promising. If we were to implement
+our B\textsuperscript{+}Tree so that it was stored in tertiary storage, we
+expect to see more favorable results. It was an interesting project, and it's
+now clear why B\textsuperscript{+}Trees are the preferred choice for database
+implementations, distributed and standalone.
 
 % conference papers do not normally have an appendix
 
 
 % use section* for acknowledgement
-\section*{Acknowledgment}
-
-
-The authors would like to thank...
-
-
-
-
-
 % trigger a \newpage just before the given reference
 % number - used to balance the columns on the last page
 % adjust value as needed - may need to be readjusted if
@@ -705,13 +722,6 @@ The authors would like to thank...
 % <OR> manually copy in the resultant .bbl file
 % set second argument of \begin to the number of references
 % (used to reserve space for the reference number labels box)
-\begin{thebibliography}{1}
-
-\bibitem{IEEEhowto:kopka}
-H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
-
-\end{thebibliography}
 
 
 
