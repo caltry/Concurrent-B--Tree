@@ -440,21 +440,32 @@ locking the entire structure.
 \section{Introduction}
 % no \IEEEPARstart
 We implemented a concurrent B\textsuperscript{+}-Tree to see how feasible a
-concurrent mapping data strucure, with minimum locking, would work.
+concurrent mapping data structure, with minimum locking, would work.
 B\textsuperscript{+}-Trees are commonly used in database applications, where
 several clients could be requesting reads and writes at the same time. In this
 application, having a concurrent B\textsuperscript{+}-Tree that minimizes
 locking could have a very significant impact on performance.
 
-\subsection{Subsection Heading Here}
-Subsection text here.
+\subsection{Structure}
+B-Trees are essentially trees of arrays. Each node in the tree contains two
+arrays: one containing all of the keys and another that contains pointers to
+other nodes in the tree. The pointers are aligned so that the child that is
+being pointed to will have lower and upper bounds that are within the key values
+of its parent node.
 
+This combination of block and linked data structures is beneficial if you want
+to be able to access a key in logarithmic time and the tree is stored on a
+device that is tuned to sequential access\footnote{Our implementation of the
+B-Tree resided on main memory, which has random access}.
 
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
-
-
-\section{Sequential Implementation}
+\subsection{B-Trees}
+B\textsuperscript{+}Trees are a specialized version of B-Trees. Regular B-Trees
+don't support mapping from keys to values \---- they only hold a set of keys and
+support tests for inclusion or exclusion of a key from a set.
+B\textsuperscript{+} build on this by introducing a new type of node that can
+have values associated with a key, rather than pointing to another node. These
+leaf nodes have to be handled differently from internal nodes, but gives us the
+ability to provide mappings from keys to values.
 
 \section{SMP Implementation}
 \subsection{Searching}
@@ -476,7 +487,7 @@ insertions. Every approach we attempted was met with undefined behavior and
 proved to be ineffective in high-stress situations.
 
 The approach we settled on was a blocking queue approach. When a process wants 
-to insert a value into the tree, the key-value pair is qeueued up and inserted
+to insert a value into the tree, the key-value pair is queued up and inserted
 into the tree at a later time. The reasons for this approach are threefold:
 \begin{enumerate}
 \item Work will be done by another thread so the thread inserting the value can
@@ -494,7 +505,7 @@ align to cache boundaries, and potentially some memory traffic issues, we
 observed a lower speedup than we expected. It is impossible to align the 
 threads to cache boundaries due to their excessive memory lookups in searching. 
 This is further compounded by the irregular memory usage of the tree caused by
-node splitting that prvents larger trees from taking advantage of spatial 
+node splitting that prevents larger trees from taking advantage of spatial 
 locality of the used data (which leads to more cache misses than programs with
 a more conventional behavior).
 
@@ -528,13 +539,13 @@ enough that it does not warrant a data-table.
 For the cluster implementation of our B\textsuperscript{+}-Tree, we decided that
 the message passing overhead from insertion operations that required cascading
 splits in the tree would be too great to warrant splitting the tree across
-multiple backend nodes. To get a faster implementeation, we decided to cut out
+multiple back end nodes. To get a faster implementation, we decided to cut out
 the movement of subtrees between nodes by making all of the nodes mirrors of
 each-other. This way, each node has the exact same tree and any re-balancing as
 a result of a split would only happen local to each node. This distributed
 mirror approach is often taken when building distributed databases that have a
 heavy search load\footnote{BigTable, for example, is designed so that the
-samedata is always copied across at least 3 nodes.}
+same data is always copied across at least 3 nodes.}
 
 \subsection{Searching}
 Because all of the back-end nodes are the same, searching through the tree is
@@ -543,7 +554,7 @@ because searching has no side effects.
 
 \subsection{Insertion}
 To insert into the tree, we need to insert into {\em all} of the trees in our
-backend nodes. We can accomplish this by putting the insert into the task queue
+back end nodes. We can accomplish this by putting the insert into the task queue
 \--- when the master gets to that task, it adds the insertion to all of the nodes.
 
 \subsection{Task Queue}
@@ -551,7 +562,7 @@ The master node has a queue of all of the operations pending for the tree. The
 approach here was very similar to question 2 of homework 4: We have a thread
 unloading tasks from a central queue and dispatching them out to worker nodes.
 Searching tasks are delegated in a rotating fashion between all of the servers.
-For an insertion, we delegate an insertion task for all of the backend trees.
+For an insertion, we delegate an insertion task for all of the back end trees.
 Because the master is in control of delegating tasks, it can send out search
 queries to nodes that have already performed the insertion so we can still have
 some concurrency, even when doing insertions.
@@ -575,12 +586,12 @@ seq & 25 & \--- & \--- & \--- \\\hline
 8&2677 & 0.934 & 0.117 & 1.081 \\\hline
 \end{tabular}
 \end{center}
-The performance curve roughly matches our expections: There's a lot of overhead
+The performance curve roughly matches our expectations: There's a lot of overhead
 involved with managing the task queue which falls on the root node, as seen by
-the performance of a 1 node cluster that does all of the the queue management
-{\em and} tree operations.
+the performance of a 1 node cluster that does all of the queue management {\em
+and} tree operations.
 
-The cluster implemenation was significantly slower than the sequential
+The cluster implementation was significantly slower than the sequential
 implementation. The overhead from managing the task queue and properly
 delegating tasks out takes a huge hit on performance. The cluster implementation
 didn't scale {\em quite} as well as we had hoped, but it's very hard to match
@@ -692,8 +703,10 @@ accounted for.
 
 Though our results were not ideal, they were promising. If we were to implement
 our B\textsuperscript{+}Tree so that it was stored in tertiary storage, we
-expect to see more favorable results. It was an interesting project, and it's
-now clear why B\textsuperscript{+}Trees are the preferred choice for database
+expect to see more favorable results. A hybrid implementation (a cluster of
+machines with multiple processors) also appears to be a good candidate for
+further work. It was an interesting project, and it's now clear why
+B\textsuperscript{+}Trees are the preferred choice for database
 implementations, distributed and standalone.
 
 % conference papers do not normally have an appendix
